@@ -2,9 +2,12 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
+	"path/filepath"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/paulombcosta/waltz/spotifyauth"
 
 	"github.com/zmb3/spotify"
@@ -20,6 +23,27 @@ var (
 )
 
 func main() {
+	router := chi.NewRouter()
+	router.Handle("/", http.HandlerFunc(homepageHandler))
+	log.Println("starting server on :8080")
+	http.ListenAndServe(":8080", router)
+}
+
+func homepageHandler(w http.ResponseWriter, r *http.Request) {
+	name := "./ui/html/home.page.tmpl"
+	tmpl, err := template.New(filepath.Base(name)).ParseFiles(name)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	err = tmpl.Execute(w, nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func setupHandlers() {
 	// first start an HTTP server
 	http.HandleFunc("/callback", completeAuth)
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
