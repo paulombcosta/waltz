@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -22,21 +21,53 @@ var (
 	state = "abc123"
 )
 
+type PageState struct {
+	LoggedInSpotify bool
+	LoggedInGoogle  bool
+}
+
 func main() {
 	router := chi.NewRouter()
-	router.Handle("/", http.HandlerFunc(homepageHandler))
+	router.Get("/", http.HandlerFunc(homepageHandler))
+	router.Get("/spotify/login", http.HandlerFunc(spotifyLoginHandler))
 	log.Println("starting server on :8080")
 	http.ListenAndServe(":8080", router)
 }
 
-func homepageHandler(w http.ResponseWriter, r *http.Request) {
+func loadHomeTemplate() (*template.Template, error) {
 	name := "./ui/html/home.page.tmpl"
-	tmpl, err := template.New(filepath.Base(name)).ParseFiles(name)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	return template.New(filepath.Base(name)).ParseFiles(name)
+}
+
+func spotifyLoginHandler(w http.ResponseWriter, r *http.Request) {
+	url := auth.AuthURL(state)
+	// r.Header.Set("HX-Redirect", url)
+	// w.WriteHeader(http.StatusOK)
+	w.Header().Set("HX-Redirect", url)
+	// fmt.Println("Please log in to Spotify by visiting the following page in your browser:", url)
+
+	// // wait for auth to complete
+	// client := <-ch
+
+	// // use the client to make calls that require authorization
+	// _, err := client.CurrentUser()
+	// if err != nil {
+	// 	http.Error(w, "Couldn't get user", http.StatusForbidden)
+	// 	log.Fatal(err)
+	// }
+	// r.Header.Set("HX-Refresh", "true")
+	// tmpl := template.Must(loadHomeTemplate())
+	// tmpl.Execute(w, PageState{LoggedInSpotify: true, LoggedInGoogle: false})
+}
+
+func homepageHandler(w http.ResponseWriter, r *http.Request) {
+	tok, _ := auth.Token(r.Context(), state, r)
+	pageState := PageState{LoggedInSpotify: false, LoggedInGoogle: false}
+	if tok != nil {
+		pageState.LoggedInSpotify = true
 	}
-	err = tmpl.Execute(w, nil)
+	tmpl := template.Must(loadHomeTemplate())
+	err := tmpl.Execute(w, pageState)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -55,19 +86,6 @@ func setupHandlers() {
 			log.Fatal(err)
 		}
 	}()
-
-	url := auth.AuthURL(state)
-	fmt.Println("Please log in to Spotify by visiting the following page in your browser:", url)
-
-	// wait for auth to complete
-	client := <-ch
-
-	// use the client to make calls that require authorization
-	user, err := client.CurrentUser()
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("You are logged in as:", user.ID)
 }
 
 func completeAuth(w http.ResponseWriter, r *http.Request) {
@@ -81,8 +99,9 @@ func completeAuth(w http.ResponseWriter, r *http.Request) {
 		log.Fatalf("State mismatch: %s != %s\n", st, state)
 	}
 
+	log.Println("token:", tok)
+	http.Redirect(w, r.WithContext(r.Context()), "/", http.StatusSeeOther)
 	// use the token to get an authenticated client
-	client := spotify.NewClient(auth.Client(r.Context(), tok))
-	fmt.Fprintf(w, "Login Completed!")
-	ch <- &client
+	// client := spotify.NewClient(auth.Client(r.Context(), tok))
+	// fmt.Fprintf(w, "Login Completed!")
 }

@@ -1,8 +1,14 @@
 <!doctype html>
 <html>
     <head>
+        <script src="https://unpkg.com/htmx.org@1.8.5" integrity="sha384-7aHh9lqPYGYZ7sTHvzP1t3BAfLhYSTy9ArHdP3Xsr9/3TlGurYgcPBoFmXX2TX/w" crossorigin="anonymous"></script>
     </head>
     <body>
-        <p>Hello</p>
+        {{ if .LoggedInSpotify }}
+            <p>Spotify login status: Logged in</p>
+        {{ else }}
+            <p>Spotify login status: Logged out</p>
+            <button hx-get="/spotify/login">Login on Spotify</button>
+        {{ end }}
     </body>
 </html>
