@@ -5,7 +5,7 @@
     </head>
     <body>
         {{ if .LoggedInSpotify }}
-            <p>Spotify login status: Logged in</p>
+            <p>Spotify login status: Logged in as {{ .SpotifyUser }}</p>
         {{ else }}
             <p>Spotify login status: Logged out</p>
             <button hx-get="/spotify/login">Login on Spotify</button>

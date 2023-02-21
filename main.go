@@ -10,22 +10,27 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/sessions"
 	"github.com/paulombcosta/waltz/spotifyauth"
+	"github.com/zmb3/spotify"
 	"golang.org/x/oauth2"
 )
 
-const redirectURI = "http://localhost:8080/callback"
+const (
+	SPOTIFY_TOKEN_SESSION_KEY = "spotify-token"
+	redirectURI               = "http://localhost:8080/callback"
+	SESSION_NAME              = "token-session"
+)
 
 var (
-	SPOTIFY_TOKEN_SESSION_KEY = "spotify-token"
-	SESSION_NAME              = "token-session"
 	// TODO get a proper session key
 	store = sessions.NewCookieStore([]byte("1234"))
 	auth  = spotifyauth.New(spotifyauth.WithRedirectURL(redirectURI), spotifyauth.WithScopes(spotifyauth.ScopeUserReadPrivate))
 	// TODO set a proper state
-	state = "abc123"
+	state  = "abc123"
+	client *spotify.Client
 )
 
 type PageState struct {
+	SpotifyUser     string
 	LoggedInSpotify bool
 	LoggedInGoogle  bool
 }
@@ -46,34 +51,23 @@ func loadHomeTemplate() (*template.Template, error) {
 
 func spotifyLoginHandler(w http.ResponseWriter, r *http.Request) {
 	url := auth.AuthURL(state)
-	// r.Header.Set("HX-Redirect", url)
-	// w.WriteHeader(http.StatusOK)
 	w.Header().Set("HX-Redirect", url)
-	// fmt.Println("Please log in to Spotify by visiting the following page in your browser:", url)
-
-	// // wait for auth to complete
-	// client := <-ch
-
-	// // use the client to make calls that require authorization
-	// _, err := client.CurrentUser()
-	// if err != nil {
-	// 	http.Error(w, "Couldn't get user", http.StatusForbidden)
-	// 	log.Fatal(err)
-	// }
-	// r.Header.Set("HX-Refresh", "true")
-	// tmpl := template.Must(loadHomeTemplate())
-	// tmpl.Execute(w, PageState{LoggedInSpotify: true, LoggedInGoogle: false})
 }
 
 func homepageHandler(w http.ResponseWriter, r *http.Request) {
 	pageState := PageState{LoggedInSpotify: false, LoggedInGoogle: false}
-	session, _ := store.Get(r, SESSION_NAME)
-	tok := session.Values[SPOTIFY_TOKEN_SESSION_KEY]
-	if tok != nil {
-		log.Println("token found, setting")
+	spotifyClient := getSpotifyClient(r)
+	if spotifyClient != nil {
+		log.Println("spotify client has been initialized")
+		user, err := client.CurrentUser()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		pageState.LoggedInSpotify = true
+		pageState.SpotifyUser = user.ID
 	} else {
-		log.Println("token not found...")
+		log.Println("token not found, user not logged in")
 	}
 	tmpl := template.Must(loadHomeTemplate())
 	err := tmpl.Execute(w, pageState)
@@ -83,22 +77,24 @@ func homepageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func setupHandlers() {
-	// first start an HTTP server
-	http.HandleFunc("/callback", completeAuth)
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		log.Println("Got request for:", r.URL.String())
-	})
-	go func() {
-		err := http.ListenAndServe(":8080", nil)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}()
-}
-
 func init() {
 	gob.Register(&oauth2.Token{})
+}
+
+func getSpotifyClient(r *http.Request) *spotify.Client {
+	if client != nil {
+		return client
+	} else {
+		session, _ := store.Get(r, SESSION_NAME)
+		tok := session.Values[SPOTIFY_TOKEN_SESSION_KEY]
+		if tok != nil {
+			newClient := spotify.NewClient(auth.Client(r.Context(), tok.(*oauth2.Token)))
+			client = &newClient
+			return client
+		} else {
+			return nil
+		}
+	}
 }
 
 func completeAuth(w http.ResponseWriter, r *http.Request) {
@@ -120,9 +116,5 @@ func completeAuth(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	// session
 	http.Redirect(w, r, "/", http.StatusSeeOther)
-	// use the token to get an authenticated client
-	// client := spotify.NewClient(auth.Client(r.Context(), tok))
-	// fmt.Fprintf(w, "Login Completed!")
 }
