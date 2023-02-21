@@ -14,7 +14,8 @@
             <p>Logged on YouTube</p>
         {{ else }}
             <p>Youtube login status: Logged out</p>
-            <button hx-get="/youtube/login">Login on Youtube</button>
+            <a href="/auth/google?provider=google"><button>Login on Youtube</button></a>
+            
         {{ end }}
     </body>
 </html>
