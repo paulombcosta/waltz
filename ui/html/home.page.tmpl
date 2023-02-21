@@ -10,5 +10,11 @@
             <p>Spotify login status: Logged out</p>
             <button hx-get="/spotify/login">Login on Spotify</button>
         {{ end }}
+        {{ if .LoggedInYoutube }}
+            <p>Logged on YouTube</p>
+        {{ else }}
+            <p>Youtube login status: Logged out</p>
+            <button hx-get="/youtube/login">Login on Youtube</button>
+        {{ end }}
     </body>
 </html>

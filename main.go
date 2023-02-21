@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/sessions"
+
 	// "github.com/paulombcosta/waltz/spotifyauth"
 	spotify "github.com/zmb3/spotify/v2"
 	spotifyauth "github.com/zmb3/spotify/v2/auth"
@@ -25,7 +26,8 @@ const (
 var (
 	// TODO get a proper session key
 	store = sessions.NewCookieStore([]byte("1234"))
-	auth  = spotifyauth.New(spotifyauth.WithRedirectURL(redirectURI), spotifyauth.WithScopes(spotifyauth.ScopeUserReadPrivate))
+	auth  = spotifyauth.New(spotifyauth.WithRedirectURL(redirectURI),
+		spotifyauth.WithScopes(spotifyauth.ScopeUserReadPrivate, spotifyauth.ScopePlaylistReadPrivate))
 	// TODO set a proper state
 	state  = "abc123"
 	client *spotify.Client
@@ -34,7 +36,7 @@ var (
 type PageState struct {
 	SpotifyUser     string
 	LoggedInSpotify bool
-	LoggedInGoogle  bool
+	LoggedInYoutube bool
 }
 
 func main() {
@@ -57,7 +59,7 @@ func spotifyLoginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func homepageHandler(w http.ResponseWriter, r *http.Request) {
-	pageState := PageState{LoggedInSpotify: false, LoggedInGoogle: false}
+	pageState := PageState{LoggedInSpotify: false, LoggedInYoutube: false}
 	spotifyClient := getSpotifyClient(r)
 	if spotifyClient != nil {
 		log.Println("spotify client has been initialized")

@@ -2,7 +2,7 @@ module github.com/paulombcosta/waltz
 
 go 1.19
 
-replace github.com/paulombcosta/waltz/spotifyauth => ./spotifyauth
+// replace github.com/paulombcosta/waltz/spotifyauth => ./spotifyauth
 
 require (
 	github.com/dghubble/gologin v2.1.0+incompatible // indirect
