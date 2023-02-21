@@ -54,7 +54,7 @@ func main() {
 		google.New(
 			os.Getenv("GOOGLE_CLIENT_ID"),
 			os.Getenv("GOOGLE_CLIENT_SECRET"),
-			"http://localhost:8080/callback/google", "https://www.googleapis.com/auth/youtube"),
+			"http://localhost:8080/callback/google", "email", "https://www.googleapis.com/auth/youtube"),
 	)
 
 	router := chi.NewRouter()
@@ -76,36 +76,37 @@ func main() {
 	http.ListenAndServe(":8080", router)
 }
 
-func getUser() {
-	// session, err := gothic.Store.Get(r, gothic.SessionName)
-	// if err != nil {
-	// 	log.Println("err :", err.Error())
-	// 	return
-	// }
-	// log.Println("session, ", session)
-	// log.Println("session values, ", session.Values)
-	// _, err = goth.GetProvider(session.Values["google"].(string))
-	// if err != nil {
-	// 	log.Println("err :", err.Error())
-	// 	return
-	// }
-	// sess, err := provider.UnmarshalSession(session.Values[gothic.SessionName].(string))
-	// if err != nil {
-	// 	log.Println("err :", err.Error())
-	// 	return
-	// }
-	// user, err := provider.FetchUser(sess)
-	// if err != nil {
-	// 	log.Println("err :", err.Error())
-	// 	return
-	// }
-	// log.Println("user: ", user)
+func getUser(r *http.Request) {
+	session, err := gothic.Store.Get(r, gothic.SessionName)
+	if err != nil {
+		log.Println("err :", err.Error())
+		return
+	}
+	log.Println("session, ", session)
+	log.Println("session values, ", session.Values)
+	provider, err := goth.GetProvider(session.Values["google"].(string))
+	if err != nil {
+		log.Println("err :", err.Error())
+		return
+	}
+	sess, err := provider.UnmarshalSession(session.Values[gothic.SessionName].(string))
+	if err != nil {
+		log.Println("err :", err.Error())
+		return
+	}
+	user, err := provider.FetchUser(sess)
+	if err != nil {
+		log.Println("err :", err.Error())
+		return
+	}
+	log.Println("user: ", user)
 
 }
 
 func startGoogleAuth(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, SESSION_NAME)
 	usr := session.Values[GOOGLE_USER_TOKEN_SESSION_KEY]
+	log.Println("user", usr)
 	if usr != nil {
 		log.Println("user present")
 		source := TokenSource{User: usr.(goth.User)}
@@ -114,11 +115,17 @@ func startGoogleAuth(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		call := youtubeService.Playlists.List([]string{})
+		call := youtubeService.Playlists.List([]string{"snippet", "id", "contentDetails"})
+		call.Mine(true)
 		res, err := call.Do()
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
+		}
+		for _, p := range res.Items {
+			log.Println("playlist title: ", p.Snippet.Title)
+			// log.Println("playlist number ", idx)
+			// log.Println("playlist: ", p)
 		}
 		log.Println("result ", res)
 		log.Printf("playlist response = %v", res)
@@ -128,33 +135,6 @@ func startGoogleAuth(w http.ResponseWriter, r *http.Request) {
 }
 
 func googleAuthCallback(w http.ResponseWriter, r *http.Request) {
-	// session, err := gothic.Store.Get(r, gothic.SessionName)
-	// if err != nil {
-	// 	log.Println("err :", err.Error())
-	// 	return
-	// }
-	// // log.Println("session, ", session)
-	// log.Println("session values, ", session.Values)
-	// provider, err := goth.GetProvider("google")
-	// if err != nil {
-	// 	log.Println("err :", err.Error())
-	// 	return
-	// }
-	// log.Println("provider ", provider)
-	// sess, err := provider.UnmarshalSession(session.Values["google"].(string))
-	// if err != nil {
-	// 	log.Println("err :", err.Error())
-	// 	return
-	// }
-	// log.Println("session ", sess)
-	// user, err := provider.FetchUser(sess)
-	// if err != nil {
-	// 	log.Println("err :", err.Error())
-	// 	return
-	// }
-	// log.Println("user: ", user)
-
-	log.Println("CALLBACK WAS CALLED")
 	user, err := gothic.CompleteUserAuth(w, r)
 	log.Println("AFTER COMPLETE AUTH")
 	log.Println("user, ", user)
@@ -165,6 +145,7 @@ func googleAuthCallback(w http.ResponseWriter, r *http.Request) {
 	log.Println("access token: ", user.AccessToken)
 	session, _ := store.Get(r, SESSION_NAME)
 	session.Values[GOOGLE_USER_TOKEN_SESSION_KEY] = user
+	session.Save(r, w)
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
