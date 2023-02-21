@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/gob"
 	"html/template"
 	"log"
@@ -9,8 +10,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/sessions"
-	"github.com/paulombcosta/waltz/spotifyauth"
-	"github.com/zmb3/spotify"
+	// "github.com/paulombcosta/waltz/spotifyauth"
+	spotify "github.com/zmb3/spotify/v2"
+	spotifyauth "github.com/zmb3/spotify/v2/auth"
 	"golang.org/x/oauth2"
 )
 
@@ -59,7 +61,7 @@ func homepageHandler(w http.ResponseWriter, r *http.Request) {
 	spotifyClient := getSpotifyClient(r)
 	if spotifyClient != nil {
 		log.Println("spotify client has been initialized")
-		user, err := client.CurrentUser()
+		user, err := client.CurrentUser(context.Background())
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -88,8 +90,7 @@ func getSpotifyClient(r *http.Request) *spotify.Client {
 		session, _ := store.Get(r, SESSION_NAME)
 		tok := session.Values[SPOTIFY_TOKEN_SESSION_KEY]
 		if tok != nil {
-			newClient := spotify.NewClient(auth.Client(r.Context(), tok.(*oauth2.Token)))
-			client = &newClient
+			client = spotify.New(auth.Client(r.Context(), tok.(*oauth2.Token)))
 			return client
 		} else {
 			return nil
