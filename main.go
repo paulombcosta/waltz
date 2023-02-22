@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/gob"
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -108,8 +109,33 @@ func startGoogleAuth(w http.ResponseWriter, r *http.Request) {
 	usr := session.Values[GOOGLE_USER_TOKEN_SESSION_KEY]
 	log.Println("user", usr)
 	if usr != nil {
-		log.Println("user present")
+		log.Println("user present, refreshing token")
+		provider, err := goth.GetProvider("google")
+		if err != nil {
+			http.Error(w, fmt.Sprintf("unable to get google provider due to: %s", err.Error()), http.StatusInternalServerError)
+			return
+		}
+
+		user := usr.(goth.User)
+		log.Println("user: ", user)
+		log.Println("user acccess token", user.AccessToken)
+		log.Println("user refresh token", user.RefreshToken)
+
+		log.Println("refresh token:, ", user.RefreshToken)
+		updatedToken, err := provider.RefreshToken(user.RefreshToken)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("unable to get google provider due to: %s", err.Error()), http.StatusInternalServerError)
+			return
+		}
+
+		user.AccessToken = updatedToken.AccessToken
+		user.RefreshToken = updatedToken.RefreshToken
+
+		session.Values[GOOGLE_USER_TOKEN_SESSION_KEY] = user
+		session.Save(r, w)
+
 		source := TokenSource{User: usr.(goth.User)}
+
 		youtubeService, err := youtube.NewService(context.Background(), option.WithTokenSource(source))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -124,8 +150,7 @@ func startGoogleAuth(w http.ResponseWriter, r *http.Request) {
 		}
 		for _, p := range res.Items {
 			log.Println("playlist title: ", p.Snippet.Title)
-			// log.Println("playlist number ", idx)
-			// log.Println("playlist: ", p)
+			log.Println("playlist kind: ", p.Kind)
 		}
 		log.Println("result ", res)
 		log.Printf("playlist response = %v", res)
@@ -137,12 +162,12 @@ func startGoogleAuth(w http.ResponseWriter, r *http.Request) {
 func googleAuthCallback(w http.ResponseWriter, r *http.Request) {
 	user, err := gothic.CompleteUserAuth(w, r)
 	log.Println("AFTER COMPLETE AUTH")
-	log.Println("user, ", user)
+	log.Println("user acess token, ", user.AccessToken)
+	log.Println("user refresh token, ", user.RefreshToken)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	log.Println("access token: ", user.AccessToken)
 	session, _ := store.Get(r, SESSION_NAME)
 	session.Values[GOOGLE_USER_TOKEN_SESSION_KEY] = user
 	session.Save(r, w)
