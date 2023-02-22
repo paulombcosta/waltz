@@ -77,33 +77,6 @@ func main() {
 	http.ListenAndServe(":8080", router)
 }
 
-func getUser(r *http.Request) {
-	session, err := gothic.Store.Get(r, gothic.SessionName)
-	if err != nil {
-		log.Println("err :", err.Error())
-		return
-	}
-	log.Println("session, ", session)
-	log.Println("session values, ", session.Values)
-	provider, err := goth.GetProvider(session.Values["google"].(string))
-	if err != nil {
-		log.Println("err :", err.Error())
-		return
-	}
-	sess, err := provider.UnmarshalSession(session.Values[gothic.SessionName].(string))
-	if err != nil {
-		log.Println("err :", err.Error())
-		return
-	}
-	user, err := provider.FetchUser(sess)
-	if err != nil {
-		log.Println("err :", err.Error())
-		return
-	}
-	log.Println("user: ", user)
-
-}
-
 func startGoogleAuth(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, SESSION_NAME)
 	usr := session.Values[GOOGLE_USER_TOKEN_SESSION_KEY]
