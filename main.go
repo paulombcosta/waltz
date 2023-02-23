@@ -8,31 +8,26 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/gorilla/sessions"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/google"
 	spotifyProvider "github.com/markbates/goth/providers/spotify"
 
-	spotify "github.com/zmb3/spotify/v2"
+	"github.com/paulombcosta/waltz/session"
 	"golang.org/x/oauth2"
 )
 
 var (
 	// TODO get a proper session key
 	// TODO set a proper state
-	state  = "abc123"
-	client *spotify.Client
+	state = "abc123"
 )
 
 type application struct {
-	store *sessions.CookieStore
+	sessionManager session.SessionManager
 }
 
 func main() {
-	store := sessions.NewCookieStore([]byte("1234"))
-	gothic.Store = store
-
 	goth.UseProviders(
 		google.New(
 			os.Getenv("GOOGLE_CLIENT_ID"),
@@ -47,7 +42,7 @@ func main() {
 
 	router := chi.NewRouter()
 
-	app := application{store: store}
+	app := application{sessionManager: session.New()}
 
 	router.Get("/", http.HandlerFunc(app.homepageHandler))
 	router.Get("/auth", gothic.BeginAuthHandler)

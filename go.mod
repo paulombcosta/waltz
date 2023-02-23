@@ -2,6 +2,8 @@ module github.com/paulombcosta/waltz
 
 go 1.19
 
+replace github.com/paulombcosta/waltz/session => ./session
+
 require (
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/gorilla/sessions v1.2.1
