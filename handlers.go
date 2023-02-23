@@ -192,10 +192,7 @@ func (a application) authCallbackHandler(w http.ResponseWriter, r *http.Request)
 	session, _ := a.store.Get(r, SESSION_NAME)
 
 	tokens := oauth2.Token{AccessToken: user.AccessToken, RefreshToken: user.RefreshToken}
-	log.Println("access token: ", tokens.AccessToken)
-	log.Println("refresh token: ", tokens.RefreshToken)
 	err = updateSession(session, provider, &tokens, r, w)
-	log.Println("session updated")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
