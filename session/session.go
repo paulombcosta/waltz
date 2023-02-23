@@ -41,7 +41,7 @@ func (s SessionManager) RefreshToken(
 	if err != nil {
 		return nil, err
 	}
-	existingTokens, err := GetSessionTokens(providerName, r, s.store)
+	existingTokens, err := s.GetSessionTokens(providerName, r)
 	if err != nil {
 		return nil, err
 	}

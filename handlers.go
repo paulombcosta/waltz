@@ -1,17 +1,15 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"html/template"
-	"log"
 	"net/http"
 	"path/filepath"
 
 	"github.com/markbates/goth/gothic"
 	"github.com/paulombcosta/waltz/provider"
+	"github.com/paulombcosta/waltz/provider/spotify"
 	"github.com/paulombcosta/waltz/provider/youtube"
-	"github.com/paulombcosta/waltz/session"
 	"github.com/paulombcosta/waltz/token"
 	"golang.org/x/oauth2"
 )
@@ -26,7 +24,7 @@ func (a application) getProvider(name string, r *http.Request, w http.ResponseWr
 	if name == PROVIDER_GOOGLE {
 		return youtube.New(tokenProvider), nil
 	} else if name == PROVIDER_SPOTIFY {
-		return nil, nil
+		return spotify.New(tokenProvider), nil
 	} else {
 		return nil, errors.New("invalid provider")
 	}
@@ -35,21 +33,13 @@ func (a application) getProvider(name string, r *http.Request, w http.ResponseWr
 func (a application) homepageHandler(w http.ResponseWriter, r *http.Request) {
 	pageState := PageState{LoggedInSpotify: false, LoggedInYoutube: false}
 
-	spotifyClient, err := getSpotifyClient(r, w, a.sessionManager)
+	spotifyProvider, err := a.getProvider(PROVIDER_SPOTIFY, r, w)
 	if err != nil {
-		log.Println("error getting spotify client: ", err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
-	if spotifyClient != nil {
-		log.Println("spotify client has been initialized")
-		user, err := spotifyClient.CurrentUser(context.Background())
-		if err != nil {
-			log.Println("error getting current user: ", err.Error())
-		} else {
-			pageState.LoggedInSpotify = true
-			pageState.SpotifyUser = user.ID
-		}
-	} else {
-		log.Println("token not found, user not logged in")
+	if spotifyProvider.IsLoggedIn() {
+		pageState.LoggedInSpotify = true
 	}
 
 	youtubeProvider, err := a.getProvider(PROVIDER_GOOGLE, r, w)
@@ -57,7 +47,7 @@ func (a application) homepageHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if .youtubeProvider.IsLoggedIn(r, w) {
+	if youtubeProvider.IsLoggedIn() {
 		pageState.LoggedInYoutube = true
 	}
 
@@ -73,7 +63,6 @@ func loadHomeTemplate() (*template.Template, error) {
 	name := "./ui/html/home.page.tmpl"
 	return template.New(filepath.Base(name)).ParseFiles(name)
 }
-
 
 func (a application) authCallbackHandler(w http.ResponseWriter, r *http.Request) {
 
