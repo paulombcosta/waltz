@@ -5,6 +5,7 @@ go 1.19
 replace github.com/paulombcosta/waltz/session => ./session
 replace github.com/paulombcosta/waltz/provider => ./provider
 replace github.com/paulombcosta/waltz/provider/youtube => ./provider/youtube
+replace github.com/paulombcosta/waltz/token => ./token
 
 require (
 	github.com/go-chi/chi/v5 v5.0.8

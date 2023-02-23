@@ -24,13 +24,13 @@ func New() SessionManager {
 	return SessionManager{store: sessions.NewCookieStore([]byte("1234"))}
 }
 
-func (s SessionManager) GetGoogleTokens(r *http.Request) (*oauth2.Token, error) {
-	return getSessionTokens("google", r, s.store)
-}
+// func (s SessionManager) GetGoogleTokens(r *http.Request) (*oauth2.Token, error) {
+// 	return getSessionTokens("google", r, s.store)
+// }
 
-func (s SessionManager) GetSpotifyTokens(r *http.Request) (*oauth2.Token, error) {
-	return getSessionTokens("spotify", r, s.store)
-}
+// func (s SessionManager) GetSpotifyTokens(r *http.Request) (*oauth2.Token, error) {
+// 	return getSessionTokens("spotify", r, s.store)
+// }
 
 func (s SessionManager) RefreshToken(
 	providerName string,
@@ -41,7 +41,7 @@ func (s SessionManager) RefreshToken(
 	if err != nil {
 		return nil, err
 	}
-	existingTokens, err := getSessionTokens(providerName, r, s.store)
+	existingTokens, err := GetSessionTokens(providerName, r, s.store)
 	if err != nil {
 		return nil, err
 	}
@@ -56,8 +56,8 @@ func (s SessionManager) RefreshToken(
 	return newTokens, nil
 }
 
-func getSessionTokens(provider string, r *http.Request, store *sessions.CookieStore) (*oauth2.Token, error) {
-	session, err := store.Get(r, SESSION_NAME)
+func (s SessionManager) GetSessionTokens(provider string, r *http.Request) (*oauth2.Token, error) {
+	session, err := s.store.Get(r, SESSION_NAME)
 	if err != nil {
 		return nil, err
 	}

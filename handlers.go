@@ -2,22 +2,39 @@ package main
 
 import (
 	"context"
+	"errors"
 	"html/template"
 	"log"
 	"net/http"
 	"path/filepath"
 
 	"github.com/markbates/goth/gothic"
+	"github.com/paulombcosta/waltz/provider"
+	"github.com/paulombcosta/waltz/provider/youtube"
 	"github.com/paulombcosta/waltz/session"
-	spotify "github.com/zmb3/spotify/v2"
-	spotifyauth "github.com/zmb3/spotify/v2/auth"
+	"github.com/paulombcosta/waltz/token"
 	"golang.org/x/oauth2"
 )
+
+const (
+	PROVIDER_GOOGLE  = "google"
+	PROVIDER_SPOTIFY = "spotify"
+)
+
+func (a application) getProvider(name string, r *http.Request, w http.ResponseWriter) (provider.Provider, error) {
+	tokenProvider := token.New(name, r, w, a.sessionManager)
+	if name == PROVIDER_GOOGLE {
+		return youtube.New(tokenProvider), nil
+	} else if name == PROVIDER_SPOTIFY {
+		return nil, nil
+	} else {
+		return nil, errors.New("invalid provider")
+	}
+}
 
 func (a application) homepageHandler(w http.ResponseWriter, r *http.Request) {
 	pageState := PageState{LoggedInSpotify: false, LoggedInYoutube: false}
 
-	// Extract this to spotify.go
 	spotifyClient, err := getSpotifyClient(r, w, a.sessionManager)
 	if err != nil {
 		log.Println("error getting spotify client: ", err.Error())
@@ -35,8 +52,12 @@ func (a application) homepageHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println("token not found, user not logged in")
 	}
 
-	// Extract this to youtube.go
-	if a.youtubeProvider.IsLoggedIn(r, w) {
+	youtubeProvider, err := a.getProvider(PROVIDER_GOOGLE, r, w)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if .youtubeProvider.IsLoggedIn(r, w) {
 		pageState.LoggedInYoutube = true
 	}
 
@@ -53,22 +74,6 @@ func loadHomeTemplate() (*template.Template, error) {
 	return template.New(filepath.Base(name)).ParseFiles(name)
 }
 
-func getSpotifyClient(r *http.Request, w http.ResponseWriter, sessionManager session.SessionManager) (*spotify.Client, error) {
-	tok, err := sessionManager.GetSpotifyTokens(r)
-	if err != nil {
-		return nil, err
-	}
-	if tok != nil {
-		newTokens, err := sessionManager.RefreshToken("spotify", r, w)
-		if err != nil {
-			return nil, err
-		}
-		client := spotify.New(spotifyauth.New().Client(r.Context(), newTokens))
-		return client, nil
-	} else {
-		return nil, nil
-	}
-}
 
 func (a application) authCallbackHandler(w http.ResponseWriter, r *http.Request) {
 
