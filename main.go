@@ -18,13 +18,6 @@ import (
 	"golang.org/x/oauth2"
 )
 
-const (
-	SPOTIFY_TOKEN_SESSION_KEY     = "spotify-token"
-	GOOGLE_USER_TOKEN_SESSION_KEY = "google-user"
-	redirectURI                   = "http://localhost:8080/callback"
-	SESSION_NAME                  = "token-session"
-)
-
 var (
 	// TODO get a proper session key
 	// TODO set a proper state
@@ -57,8 +50,6 @@ func main() {
 	app := application{store: store}
 
 	router.Get("/", http.HandlerFunc(app.homepageHandler))
-	// router.Get("/auth", http.HandlerFunc(app.spotifyLoginHandler))
-	// router.Handle("/auth", http.HandlerFunc(app.startGoogleAuth))
 	router.Get("/auth", gothic.BeginAuthHandler)
 	router.Handle("/auth/callback", http.HandlerFunc(app.authCallbackHandler))
 	log.Println("starting server on :8080")

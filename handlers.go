@@ -19,57 +19,11 @@ import (
 	"google.golang.org/api/youtube/v3"
 )
 
-// func (a application) startGoogleAuth(w http.ResponseWriter, r *http.Request) {
-// 	session, _ := a.store.Get(r, SESSION_NAME)
-// 	tokens := session.Values[GOOGLE_USER_TOKEN_SESSION_KEY]
-// 	log.Println("tokens", tokens)
-// 	if tokens != nil {
-// 		log.Println("user present, refreshing token")
-// 		provider, err := goth.GetProvider("google")
-// 		if err != nil {
-// 			http.Error(w, fmt.Sprintf("unable to get google provider due to: %s", err.Error()), http.StatusInternalServerError)
-// 			return
-// 		}
-
-// 		t := tokens.(oauth2.Token)
-
-// 		log.Println("user acccess token", t.AccessToken)
-// 		log.Println("user refresh token", t.RefreshToken)
-
-// 		updatedToken, err := provider.RefreshToken(t.RefreshToken)
-
-// 		if err != nil {
-// 			http.Error(w, fmt.Sprintf("unable to get google provider due to: %s", err.Error()), http.StatusInternalServerError)
-// 			return
-// 		}
-
-// 		session.Values[GOOGLE_USER_TOKEN_SESSION_KEY] = oauth2.Token{AccessToken: updatedToken.AccessToken, RefreshToken: updatedToken.RefreshToken}
-// 		session.Save(r, w)
-
-// 		source := TokenSource{Source: *updatedToken}
-
-//			youtubeService, err := youtube.NewService(context.Background(), option.WithTokenSource(source))
-//			if err != nil {
-//				http.Error(w, err.Error(), http.StatusInternalServerError)
-//				return
-//			}
-//			call := youtubeService.Playlists.List([]string{"snippet", "id", "contentDetails"})
-//			call.Mine(true)
-//			res, err := call.Do()
-//			if err != nil {
-//				http.Error(w, err.Error(), http.StatusInternalServerError)
-//				return
-//			}
-//			for _, p := range res.Items {
-//				log.Println("playlist title: ", p.Snippet.Title)
-//				log.Println("playlist kind: ", p.Kind)
-//			}
-//			log.Println("result ", res)
-//			log.Printf("playlist response = %v", res)
-//		} else {
-//			gothic.BeginAuthHandler(w, r)
-//		}
-//	}
+const (
+	SPOTIFY_TOKEN_SESSION_KEY     = "spotify-token"
+	GOOGLE_USER_TOKEN_SESSION_KEY = "google-user"
+	SESSION_NAME                  = "token-session"
+)
 
 // extract this to youtube.go eventually
 func getYoutubePlaylists(client *youtube.Service) error {
