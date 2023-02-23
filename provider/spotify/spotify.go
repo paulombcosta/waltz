@@ -17,14 +17,29 @@ func New(tokenProvider provider.TokenProvider) *SpotifyProvider {
 	return &SpotifyProvider{tokenProvider: tokenProvider}
 }
 
-func (y SpotifyProvider) IsLoggedIn() bool {
-	_, err := y.tokenProvider.RefreshToken()
+func (s SpotifyProvider) IsLoggedIn() bool {
+	_, err := s.tokenProvider.RefreshToken()
 	return err == nil
 }
 
-func (y SpotifyProvider) GetPlaylists() ([]provider.Playlist, error) {
-	// TODO
-	return nil, nil
+func (s SpotifyProvider) GetPlaylists() ([]provider.Playlist, error) {
+	token, err := s.tokenProvider.GetToken()
+	if err != nil {
+		return nil, err
+	}
+	client, err := s.getSpotifyClient(token)
+	if err != nil {
+		return nil, err
+	}
+	page, err := client.CurrentUsersPlaylists(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	playlists := []provider.Playlist{}
+	for _, p := range page.Playlists {
+		playlists = append(playlists, provider.Playlist{Name: p.Name})
+	}
+	return playlists, nil
 }
 
 func (s SpotifyProvider) getSpotifyClient(tok *oauth2.Token) (*spotify.Client, error) {
