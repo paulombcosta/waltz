@@ -5,17 +5,16 @@
     </head>
     <body>
         {{ if .LoggedInSpotify }}
-            <p>Spotify login status: Logged in as {{ .SpotifyUser }}</p>
+            <p>Spotify login status: Logged in</p>
         {{ else }}
             <p>Spotify login status: Logged out</p>
             <a href="/auth?provider=spotify"><button>Login on Spotify</button></a>
         {{ end }}
         {{ if .LoggedInYoutube }}
-            <p>Logged on YouTube</p>
+            <p>Youtube login status: Logged in</p>
         {{ else }}
             <p>Youtube login status: Logged out</p>
             <a href="/auth?provider=google"><button>Login on Youtube</button></a>
-            
         {{ end }}
     </body>
 </html>

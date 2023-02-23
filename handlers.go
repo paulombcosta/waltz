@@ -88,7 +88,6 @@ func (a application) authCallbackHandler(w http.ResponseWriter, r *http.Request)
 }
 
 type PageState struct {
-	SpotifyUser     string
 	LoggedInSpotify bool
 	LoggedInYoutube bool
 }
