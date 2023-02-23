@@ -1,20 +1,18 @@
-<!doctype html>
-<html>
-    <head>
-        <script src="https://unpkg.com/htmx.org@1.8.5" integrity="sha384-7aHh9lqPYGYZ7sTHvzP1t3BAfLhYSTy9ArHdP3Xsr9/3TlGurYgcPBoFmXX2TX/w" crossorigin="anonymous"></script>
-    </head>
-    <body>
-        {{ if .LoggedInSpotify }}
-            <p>Spotify login status: Logged in</p>
-        {{ else }}
-            <p>Spotify login status: Logged out</p>
-            <a href="/auth?provider=spotify"><button>Login on Spotify</button></a>
-        {{ end }}
-        {{ if .LoggedInYoutube }}
-            <p>Youtube login status: Logged in</p>
-        {{ else }}
-            <p>Youtube login status: Logged out</p>
-            <a href="/auth?provider=google"><button>Login on Youtube</button></a>
-        {{ end }}
-    </body>
-</html>
+{{template "base" .}}
+
+{{ define "main" }}
+<div>
+    {{ if .LoggedInSpotify }}
+        <p>Spotify login status: Logged in</p>
+    {{ else }}
+        <p>Spotify login status: Logged out</p>
+        <a href="/auth?provider=spotify"><button>Login on Spotify</button></a>
+    {{ end }}
+    {{ if .LoggedInYoutube }}
+        <p>Youtube login status: Logged in</p>
+    {{ else }}
+        <p>Youtube login status: Logged out</p>
+        <a href="/auth?provider=google"><button>Login on Youtube</button></a>
+    {{ end }}
+</div>
+{{ end }}

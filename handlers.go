@@ -61,7 +61,15 @@ func (a application) homepageHandler(w http.ResponseWriter, r *http.Request) {
 
 func loadHomeTemplate() (*template.Template, error) {
 	name := "./ui/html/home.page.tmpl"
-	return template.New(filepath.Base(name)).ParseFiles(name)
+	ts, err := template.New(filepath.Base(name)).ParseFiles(name)
+	if err != nil {
+		return nil, err
+	}
+	ts, err = ts.ParseGlob(filepath.Join("./ui/html/", "*.layout.tmpl"))
+	if err != nil {
+		return nil, err
+	}
+	return ts, nil
 }
 
 func (a application) authCallbackHandler(w http.ResponseWriter, r *http.Request) {
