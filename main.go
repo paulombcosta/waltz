@@ -55,7 +55,7 @@ func main() {
 
 	router.Get("/", http.HandlerFunc(app.homepageHandler))
 	router.Get("/spotify/login", http.HandlerFunc(app.spotifyLoginHandler))
-	router.Handle("/callback", http.HandlerFunc(app.completeAuth))
+	router.Handle("/callback", http.HandlerFunc(app.spotifyAuthCallback))
 	router.Handle("/auth/{provider}", http.HandlerFunc(app.startGoogleAuth))
 	router.Handle("/callback/google", http.HandlerFunc(app.googleAuthCallback))
 	log.Println("starting server on :8080")

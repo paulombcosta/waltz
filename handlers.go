@@ -17,6 +17,9 @@ import (
 	"google.golang.org/api/youtube/v3"
 )
 
+type AuthData struct {
+}
+
 func (a application) spotifyLoginHandler(w http.ResponseWriter, r *http.Request) {
 	url := auth.AuthURL(state)
 	w.Header().Set("HX-Redirect", url)
@@ -65,7 +68,7 @@ func getSpotifyClient(r *http.Request, store *sessions.CookieStore) *spotify.Cli
 	}
 }
 
-func (a application) completeAuth(w http.ResponseWriter, r *http.Request) {
+func (a application) spotifyAuthCallback(w http.ResponseWriter, r *http.Request) {
 	tok, err := auth.Token(r.Context(), state, r)
 	if err != nil {
 		http.Error(w, "Couldn't get token", http.StatusForbidden)
@@ -78,7 +81,8 @@ func (a application) completeAuth(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("token:", tok)
 	session, _ := a.store.Get(r, SESSION_NAME)
-	session.Values[SPOTIFY_TOKEN_SESSION_KEY] = tok
+	// only store the bare-minimum necessary
+	session.Values[SPOTIFY_TOKEN_SESSION_KEY] = oauth2.Token{AccessToken: tok.AccessToken, RefreshToken: tok.RefreshToken}
 	err = session.Save(r, w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -89,9 +93,9 @@ func (a application) completeAuth(w http.ResponseWriter, r *http.Request) {
 
 func (a application) startGoogleAuth(w http.ResponseWriter, r *http.Request) {
 	session, _ := a.store.Get(r, SESSION_NAME)
-	usr := session.Values[GOOGLE_USER_TOKEN_SESSION_KEY]
-	log.Println("user", usr)
-	if usr != nil {
+	tokens := session.Values[GOOGLE_USER_TOKEN_SESSION_KEY]
+	log.Println("tokens", tokens)
+	if tokens != nil {
 		log.Println("user present, refreshing token")
 		provider, err := goth.GetProvider("google")
 		if err != nil {
@@ -99,25 +103,22 @@ func (a application) startGoogleAuth(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		user := usr.(goth.User)
-		log.Println("user: ", user)
-		log.Println("user acccess token", user.AccessToken)
-		log.Println("user refresh token", user.RefreshToken)
+		t := tokens.(oauth2.Token)
 
-		log.Println("refresh token:, ", user.RefreshToken)
-		updatedToken, err := provider.RefreshToken(user.RefreshToken)
+		log.Println("user acccess token", t.AccessToken)
+		log.Println("user refresh token", t.RefreshToken)
+
+		updatedToken, err := provider.RefreshToken(t.RefreshToken)
+
 		if err != nil {
 			http.Error(w, fmt.Sprintf("unable to get google provider due to: %s", err.Error()), http.StatusInternalServerError)
 			return
 		}
 
-		user.AccessToken = updatedToken.AccessToken
-		user.RefreshToken = updatedToken.RefreshToken
-
-		session.Values[GOOGLE_USER_TOKEN_SESSION_KEY] = user
+		session.Values[GOOGLE_USER_TOKEN_SESSION_KEY] = oauth2.Token{AccessToken: updatedToken.AccessToken, RefreshToken: updatedToken.RefreshToken}
 		session.Save(r, w)
 
-		source := TokenSource{User: usr.(goth.User)}
+		source := TokenSource{Source: *updatedToken}
 
 		youtubeService, err := youtube.NewService(context.Background(), option.WithTokenSource(source))
 		if err != nil {
@@ -152,20 +153,17 @@ func (a application) googleAuthCallback(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	session, _ := a.store.Get(r, SESSION_NAME)
-	session.Values[GOOGLE_USER_TOKEN_SESSION_KEY] = user
+	session.Values[GOOGLE_USER_TOKEN_SESSION_KEY] = oauth2.Token{AccessToken: user.AccessToken, RefreshToken: user.RefreshToken}
 	session.Save(r, w)
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 type TokenSource struct {
-	User goth.User
+	Source oauth2.Token
 }
 
 func (s TokenSource) Token() (*oauth2.Token, error) {
-	return &oauth2.Token{
-		AccessToken:  s.User.AccessToken,
-		RefreshToken: s.User.RefreshToken,
-	}, nil
+	return &s.Source, nil
 }
 
 type PageState struct {
