@@ -8,13 +8,13 @@
             <p>Spotify login status: Logged in as {{ .SpotifyUser }}</p>
         {{ else }}
             <p>Spotify login status: Logged out</p>
-            <button hx-get="/spotify/login">Login on Spotify</button>
+            <a href="/auth?provider=spotify"><button>Login on Spotify</button></a>
         {{ end }}
         {{ if .LoggedInYoutube }}
             <p>Logged on YouTube</p>
         {{ else }}
             <p>Youtube login status: Logged out</p>
-            <a href="/auth/google?provider=google"><button>Login on Youtube</button></a>
+            <a href="/auth?provider=google"><button>Login on Youtube</button></a>
             
         {{ end }}
     </body>
