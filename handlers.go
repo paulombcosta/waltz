@@ -12,47 +12,7 @@ import (
 	spotify "github.com/zmb3/spotify/v2"
 	spotifyauth "github.com/zmb3/spotify/v2/auth"
 	"golang.org/x/oauth2"
-	"google.golang.org/api/option"
-	"google.golang.org/api/youtube/v3"
 )
-
-// extract this to youtube.go eventually
-func getYoutubePlaylists(client *youtube.Service) error {
-	call := client.Playlists.List([]string{"snippet", "id", "contentDetails"})
-	call.Mine(true)
-	res, err := call.Do()
-	if err != nil {
-		return err
-	}
-	for _, p := range res.Items {
-		log.Println("playlist title: ", p.Snippet.Title)
-		log.Println("playlist kind: ", p.Kind)
-	}
-	log.Println("result ", res)
-	log.Printf("playlist response = %v", res)
-	return nil
-}
-
-func getYoutubeClient(r *http.Request, w http.ResponseWriter, sessionManager session.SessionManager) (*youtube.Service, error) {
-	tok, err := sessionManager.GetGoogleTokens(r)
-	if err != nil {
-		return nil, err
-	}
-	if tok != nil {
-		newTokens, err := sessionManager.RefreshToken("google", r, w)
-		if err != nil {
-			return nil, err
-		}
-		source := TokenSource{Source: *newTokens}
-		youtubeService, err := youtube.NewService(
-			context.Background(), option.WithTokenSource(source))
-		if err != nil {
-			return nil, err
-		}
-		return youtubeService, nil
-	}
-	return nil, nil
-}
 
 func (a application) homepageHandler(w http.ResponseWriter, r *http.Request) {
 	pageState := PageState{LoggedInSpotify: false, LoggedInYoutube: false}
@@ -76,15 +36,8 @@ func (a application) homepageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Extract this to youtube.go
-	youtubeClient, err := getYoutubeClient(r, w, a.sessionManager)
-	if err != nil {
-		log.Println("error getting yotubue client, ", err.Error())
-	}
-	if youtubeClient != nil {
-		err = getYoutubePlaylists(youtubeClient)
-		if err != nil {
-			log.Println("error getting youtube playlists", err.Error())
-		}
+	if a.youtubeProvider.IsLoggedIn(r, w) {
+		pageState.LoggedInYoutube = true
 	}
 
 	tmpl := template.Must(loadHomeTemplate())
@@ -138,14 +91,6 @@ func (a application) authCallbackHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
-}
-
-type TokenSource struct {
-	Source oauth2.Token
-}
-
-func (s TokenSource) Token() (*oauth2.Token, error) {
-	return &s.Source, nil
 }
 
 type PageState struct {

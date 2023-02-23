@@ -12,6 +12,8 @@ import (
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/google"
 	spotifyProvider "github.com/markbates/goth/providers/spotify"
+	"github.com/paulombcosta/waltz/provider"
+	"github.com/paulombcosta/waltz/provider/youtube"
 
 	"github.com/paulombcosta/waltz/session"
 	"golang.org/x/oauth2"
@@ -24,7 +26,8 @@ var (
 )
 
 type application struct {
-	sessionManager session.SessionManager
+	sessionManager  session.SessionManager
+	youtubeProvider provider.Provider
 }
 
 func main() {
@@ -42,7 +45,11 @@ func main() {
 
 	router := chi.NewRouter()
 
-	app := application{sessionManager: session.New()}
+	sessionManager := session.New()
+	app := application{
+		sessionManager:  sessionManager,
+		youtubeProvider: youtube.New(sessionManager),
+	}
 
 	router.Get("/", http.HandlerFunc(app.homepageHandler))
 	router.Get("/auth", gothic.BeginAuthHandler)
