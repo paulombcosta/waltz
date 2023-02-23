@@ -15,6 +15,8 @@ import (
 	spotify "github.com/zmb3/spotify/v2"
 	spotifyauth "github.com/zmb3/spotify/v2/auth"
 	"golang.org/x/oauth2"
+	"google.golang.org/api/option"
+	"google.golang.org/api/youtube/v3"
 )
 
 // func (a application) startGoogleAuth(w http.ResponseWriter, r *http.Request) {
@@ -68,6 +70,43 @@ import (
 //			gothic.BeginAuthHandler(w, r)
 //		}
 //	}
+
+// extract this to youtube.go eventually
+func getYoutubePlaylists(client *youtube.Service) error {
+	call := client.Playlists.List([]string{"snippet", "id", "contentDetails"})
+	call.Mine(true)
+	res, err := call.Do()
+	if err != nil {
+		return err
+	}
+	for _, p := range res.Items {
+		log.Println("playlist title: ", p.Snippet.Title)
+		log.Println("playlist kind: ", p.Kind)
+	}
+	log.Println("result ", res)
+	log.Printf("playlist response = %v", res)
+	return nil
+}
+
+func getYoutubeClient(r *http.Request, w http.ResponseWriter, store *sessions.CookieStore) (*youtube.Service, error) {
+	session, _ := store.Get(r, SESSION_NAME)
+	tok := session.Values[GOOGLE_USER_TOKEN_SESSION_KEY]
+	if tok != nil {
+		newTokens, err := refreshToken("google", r, w, store)
+		if err != nil {
+			return nil, err
+		}
+		source := TokenSource{Source: *newTokens}
+		youtubeService, err := youtube.NewService(
+			context.Background(), option.WithTokenSource(source))
+		if err != nil {
+			return nil, err
+		}
+		return youtubeService, nil
+	}
+	return nil, nil
+}
+
 func getSessionTokens(provider string, r *http.Request, store *sessions.CookieStore) (*oauth2.Token, error) {
 	session, err := store.Get(r, SESSION_NAME)
 	if err != nil {
@@ -124,6 +163,8 @@ func refreshToken(
 
 func (a application) homepageHandler(w http.ResponseWriter, r *http.Request) {
 	pageState := PageState{LoggedInSpotify: false, LoggedInYoutube: false}
+
+	// Extract this to spotify.go
 	spotifyClient, err := getSpotifyClient(r, w, a.store)
 	if err != nil {
 		log.Println("error getting spotify client: ", err.Error())
@@ -140,6 +181,19 @@ func (a application) homepageHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		log.Println("token not found, user not logged in")
 	}
+
+	// Extract this to youtube.go
+	youtubeClient, err := getYoutubeClient(r, w, a.store)
+	if err != nil {
+		log.Println("error getting yotubue client, ", err.Error())
+	}
+	if youtubeClient != nil {
+		err = getYoutubePlaylists(youtubeClient)
+		if err != nil {
+			log.Println("error getting youtube playlists", err.Error())
+		}
+	}
+
 	tmpl := template.Must(loadHomeTemplate())
 	err = tmpl.Execute(w, pageState)
 	if err != nil {
@@ -156,7 +210,6 @@ func loadHomeTemplate() (*template.Template, error) {
 func getSpotifyClient(r *http.Request, w http.ResponseWriter, store *sessions.CookieStore) (*spotify.Client, error) {
 	session, _ := store.Get(r, SESSION_NAME)
 	tok := session.Values[SPOTIFY_TOKEN_SESSION_KEY]
-	log.Println("saved token = ", tok)
 	if tok != nil {
 		newTokens, err := refreshToken("spotify", r, w, store)
 		if err != nil {
