@@ -1,0 +1,9 @@
+{{template "base" .}}
+
+{{ define "main" }}
+    <table>
+    {{ range .Playlists }}
+        <li><p>{{ .Name }}</p></li>
+    {{end}}
+    </table>
+{{end}}
