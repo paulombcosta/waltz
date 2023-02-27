@@ -20,17 +20,10 @@ type SessionManager struct {
 	store *sessions.CookieStore
 }
 
+// TODO use a proper cookie store
 func New() SessionManager {
 	return SessionManager{store: sessions.NewCookieStore([]byte("1234"))}
 }
-
-// func (s SessionManager) GetGoogleTokens(r *http.Request) (*oauth2.Token, error) {
-// 	return getSessionTokens("google", r, s.store)
-// }
-
-// func (s SessionManager) GetSpotifyTokens(r *http.Request) (*oauth2.Token, error) {
-// 	return getSessionTokens("spotify", r, s.store)
-// }
 
 func (s SessionManager) RefreshToken(
 	providerName string,

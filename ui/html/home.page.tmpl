@@ -2,6 +2,7 @@
 
 {{ define "main" }}
 <div>
+    <h2>Login on Youtube & Spotify</h2>
     {{ if .LoggedInSpotify }}
         <p>Spotify login status: Logged in</p>
     {{ else }}
@@ -13,6 +14,12 @@
     {{ else }}
         <p>Youtube login status: Logged out</p>
         <a href="/auth?provider=google"><button>Login on Youtube</button></a>
+    {{ end }}
+    <h2>Select playlists<h2>
+    {{ if and .LoggedInSpotify .LoggedInYoutube }}
+        <p>show playlists</p>
+    {{ else }}
+        <p>waiting</p>
     {{ end }}
 </div>
 {{ end }}

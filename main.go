@@ -17,12 +17,6 @@ import (
 	"golang.org/x/oauth2"
 )
 
-var (
-	// TODO get a proper session key
-	// TODO set a proper state
-	state = "abc123"
-)
-
 type application struct {
 	sessionManager session.SessionManager
 }

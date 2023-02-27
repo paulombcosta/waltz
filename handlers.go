@@ -19,6 +19,16 @@ const (
 	PROVIDER_SPOTIFY = "spotify"
 )
 
+type PlaylistsContent struct {
+	playlists []provider.Playlist
+	err       string
+}
+
+type PageState struct {
+	LoggedInSpotify bool
+	LoggedInYoutube bool
+}
+
 func (a application) getProvider(name string, r *http.Request, w http.ResponseWriter) (provider.Provider, error) {
 	tokenProvider := token.New(name, r, w, a.sessionManager)
 	if name == PROVIDER_GOOGLE {
@@ -49,6 +59,21 @@ func (a application) homepageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if youtubeProvider.IsLoggedIn() {
 		pageState.LoggedInYoutube = true
+	}
+
+	if pageState.LoggedInSpotify && pageState.LoggedInYoutube {
+		playlists, err := spotifyProvider.GetPlaylists()
+		content := PlaylistsContent{}
+		if err != nil {
+			content = PlaylistsContent{
+				playlists: playlists,
+				err:       "",
+			}
+		}
+		content = PlaylistsContent{
+			playlists: []provider.Playlist{},
+			err:       err.Error(),
+		}
 	}
 
 	tmpl := template.Must(loadHomeTemplate())
@@ -93,9 +118,4 @@ func (a application) authCallbackHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
-}
-
-type PageState struct {
-	LoggedInSpotify bool
-	LoggedInYoutube bool
 }
