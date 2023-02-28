@@ -20,13 +20,14 @@ const (
 )
 
 type PlaylistsContent struct {
-	playlists []provider.Playlist
-	err       string
+	Playlists []provider.Playlist
+	Err       string
 }
 
 type PageState struct {
-	LoggedInSpotify bool
-	LoggedInYoutube bool
+	LoggedInSpotify  bool
+	LoggedInYoutube  bool
+	PlaylistsContent PlaylistsContent
 }
 
 func (a application) getProvider(name string, r *http.Request, w http.ResponseWriter) (provider.Provider, error) {
@@ -41,7 +42,11 @@ func (a application) getProvider(name string, r *http.Request, w http.ResponseWr
 }
 
 func (a application) homepageHandler(w http.ResponseWriter, r *http.Request) {
-	pageState := PageState{LoggedInSpotify: false, LoggedInYoutube: false}
+	pageState := PageState{
+		LoggedInSpotify:  false,
+		LoggedInYoutube:  false,
+		PlaylistsContent: PlaylistsContent{},
+	}
 
 	spotifyProvider, err := a.getProvider(PROVIDER_SPOTIFY, r, w)
 	if err != nil {
@@ -66,14 +71,16 @@ func (a application) homepageHandler(w http.ResponseWriter, r *http.Request) {
 		content := PlaylistsContent{}
 		if err != nil {
 			content = PlaylistsContent{
-				playlists: playlists,
-				err:       "",
+				Playlists: []provider.Playlist{},
+				Err:       err.Error(),
+			}
+		} else {
+			content = PlaylistsContent{
+				Playlists: playlists,
+				Err:       "",
 			}
 		}
-		content = PlaylistsContent{
-			playlists: []provider.Playlist{},
-			err:       err.Error(),
-		}
+		pageState.PlaylistsContent = content
 	}
 
 	tmpl := template.Must(loadHomeTemplate())

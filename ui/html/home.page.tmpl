@@ -15,9 +15,20 @@
         <p>Youtube login status: Logged out</p>
         <a href="/auth?provider=google"><button>Login on Youtube</button></a>
     {{ end }}
-    <h2>Select playlists<h2>
+    <h2>Select playlists</h2>
     {{ if and .LoggedInSpotify .LoggedInYoutube }}
-        <p>show playlists</p>
+        {{ with .PlaylistsContent }}
+        <table>
+            <tr>
+                <th>Name</th>
+            </tr>
+            {{ range .Playlists }}
+                <tr>
+                    <td>{{ .Name }}</td>
+                </tr>
+            {{ end }}
+        </table>
+        {{ end }}
     {{ else }}
         <p>waiting</p>
     {{ end }}

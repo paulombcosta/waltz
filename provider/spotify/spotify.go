@@ -31,7 +31,7 @@ func (s SpotifyProvider) GetPlaylists() ([]provider.Playlist, error) {
 	if err != nil {
 		return nil, err
 	}
-	page, err := client.CurrentUsersPlaylists(context.Background())
+	page, err := client.CurrentUsersPlaylists(context.Background(), spotify.Limit(50))
 	if err != nil {
 		return nil, err
 	}
