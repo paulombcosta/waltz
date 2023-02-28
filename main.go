@@ -36,6 +36,8 @@ func main() {
 
 	router := chi.NewRouter()
 
+	fileServer := http.FileServer(http.Dir("./ui/static"))
+
 	sessionManager := session.New()
 	app := application{
 		sessionManager: sessionManager,
@@ -44,8 +46,9 @@ func main() {
 	router.Get("/", http.HandlerFunc(app.homepageHandler))
 	router.Get("/auth", gothic.BeginAuthHandler)
 	router.Handle("/auth/callback", http.HandlerFunc(app.authCallbackHandler))
+	router.Handle("/static/*", http.StripPrefix("/static", fileServer))
 	log.Println("starting server on :8080")
-	http.ListenAndServe(":8080", router)
+	log.Panic(http.ListenAndServe(":8080", router))
 }
 
 func init() {
