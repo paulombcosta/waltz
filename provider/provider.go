@@ -16,5 +16,7 @@ type Provider interface {
 }
 
 type Playlist struct {
-	Name string
+	Name    string
+	Tracks  uint
+	Creator string
 }

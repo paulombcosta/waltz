@@ -20,14 +20,21 @@
         {{ with .PlaylistsContent }}
         <table>
             <tr>
+                <th>Selected</th>
                 <th>Name</th>
+                <th>Tracks</th>
+                <th>Creator</th>
             </tr>
             {{ range .Playlists }}
                 <tr>
+                    <td><input type="checkbox"></td>
                     <td>{{ .Name }}</td>
+                    <td>{{ .Tracks }}</td>
+                    <td>{{ .Creator }}</td>
                 </tr>
             {{ end }}
         </table>
+        <button type="button">Start Transfer</button>
         {{ end }}
     {{ else }}
         <p>waiting</p>

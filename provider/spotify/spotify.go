@@ -40,7 +40,11 @@ func (s SpotifyProvider) GetPlaylists() ([]provider.Playlist, error) {
 			return nil, err
 		}
 		for _, p := range page.Playlists {
-			playlists = append(playlists, provider.Playlist{Name: p.Name})
+			playlists = append(playlists, provider.Playlist{
+				Name:    p.Name,
+				Tracks:  p.Tracks.Total,
+				Creator: p.Owner.DisplayName,
+			})
 		}
 		if page.Next == "" || len(page.Playlists) == 0 {
 			break
