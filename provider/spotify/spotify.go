@@ -31,15 +31,31 @@ func (s SpotifyProvider) GetPlaylists() ([]provider.Playlist, error) {
 	if err != nil {
 		return nil, err
 	}
-	page, err := client.CurrentUsersPlaylists(context.Background(), spotify.Limit(50))
-	if err != nil {
-		return nil, err
-	}
 	playlists := []provider.Playlist{}
-	for _, p := range page.Playlists {
-		playlists = append(playlists, provider.Playlist{Name: p.Name})
+	offset := 0
+	var page *spotify.SimplePlaylistPage
+	for {
+		page, err = getPaginatedPlaylists(client, context.Background(), offset)
+		if err != nil {
+			return nil, err
+		}
+		for _, p := range page.Playlists {
+			playlists = append(playlists, provider.Playlist{Name: p.Name})
+		}
+		if page.Next == "" || len(page.Playlists) == 0 {
+			break
+		}
+		offset = offset + len(page.Playlists)
 	}
 	return playlists, nil
+}
+
+func getPaginatedPlaylists(client *spotify.Client, ctx context.Context, offset int) (*spotify.SimplePlaylistPage, error) {
+	if offset == 0 {
+		return client.CurrentUsersPlaylists(context.Background(), spotify.Limit(50))
+	} else {
+		return client.CurrentUsersPlaylists(context.Background(), spotify.Limit(50), spotify.Offset(offset))
+	}
 }
 
 func (s SpotifyProvider) getSpotifyClient(tok *oauth2.Token) (*spotify.Client, error) {
