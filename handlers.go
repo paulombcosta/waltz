@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"html/template"
+	"log"
 	"net/http"
 	"path/filepath"
 
@@ -28,6 +30,20 @@ type PageState struct {
 	LoggedInSpotify  bool
 	LoggedInYoutube  bool
 	PlaylistsContent PlaylistsContent
+}
+
+type TransferPayload struct {
+	Playlists []string `json:"playlists"`
+}
+
+func (a application) transferHandler(w http.ResponseWriter, r *http.Request) {
+	var payload TransferPayload
+	err := json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	log.Println("received payload", payload)
 }
 
 func (a application) getProvider(name string, r *http.Request, w http.ResponseWriter) (provider.Provider, error) {

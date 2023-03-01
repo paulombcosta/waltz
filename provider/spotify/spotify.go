@@ -41,6 +41,7 @@ func (s SpotifyProvider) GetPlaylists() ([]provider.Playlist, error) {
 		}
 		for _, p := range page.Playlists {
 			playlists = append(playlists, provider.Playlist{
+				ID:      string(p.ID),
 				Name:    p.Name,
 				Tracks:  p.Tracks.Total,
 				Creator: p.Owner.DisplayName,

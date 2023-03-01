@@ -47,6 +47,7 @@ func main() {
 	router.Get("/auth", gothic.BeginAuthHandler)
 	router.Handle("/auth/callback", http.HandlerFunc(app.authCallbackHandler))
 	router.Handle("/static/*", http.StripPrefix("/static", fileServer))
+	router.Post("/transfer", http.HandlerFunc(app.transferHandler))
 	log.Println("starting server on :8080")
 	log.Panic(http.ListenAndServe(":8080", router))
 }

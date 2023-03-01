@@ -18,7 +18,9 @@
     <h2>Select playlists</h2>
     {{ if and .LoggedInSpotify .LoggedInYoutube }}
         {{ with .PlaylistsContent }}
-        <table>
+        <input type="checkbox" id="bulk" name="Select all"/>
+        <p>Select all</p>
+        <table id="table">
             <tr>
                 <th>Selected</th>
                 <th>Name</th>
@@ -27,14 +29,14 @@
             </tr>
             {{ range .Playlists }}
                 <tr>
-                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox" id="{{ .ID }}"></td>
                     <td>{{ .Name }}</td>
                     <td>{{ .Tracks }}</td>
                     <td>{{ .Creator }}</td>
                 </tr>
             {{ end }}
         </table>
-        <button type="button">Start Transfer</button>
+        <button type="button" id="submit">Start Transfer</button>
         {{ end }}
     {{ else }}
         <p>waiting</p>
