@@ -4,19 +4,21 @@ import (
 	"golang.org/x/oauth2"
 )
 
+type PlaylistID string
+
 type TokenProvider interface {
 	GetToken() (*oauth2.Token, error)
 	RefreshToken() (*oauth2.Token, error)
 }
 
-// have a token provider instead of having use these http types
 type Provider interface {
 	IsLoggedIn() bool
 	GetPlaylists() ([]Playlist, error)
+	CreatePlaylist(name string) (*PlaylistID, error)
 }
 
 type Playlist struct {
-	ID      string
+	ID      PlaylistID
 	Name    string
 	Tracks  uint
 	Creator string

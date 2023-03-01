@@ -2,6 +2,7 @@ package spotify
 
 import (
 	"context"
+	"errors"
 
 	"github.com/paulombcosta/waltz/provider"
 	"github.com/zmb3/spotify/v2"
@@ -20,6 +21,10 @@ func New(tokenProvider provider.TokenProvider) *SpotifyProvider {
 func (s SpotifyProvider) IsLoggedIn() bool {
 	_, err := s.tokenProvider.RefreshToken()
 	return err == nil
+}
+
+func (s SpotifyProvider) CreatePlaylist(name string) (*provider.PlaylistID, error) {
+	return nil, errors.New("not implemented")
 }
 
 func (s SpotifyProvider) GetPlaylists() ([]provider.Playlist, error) {
@@ -41,7 +46,7 @@ func (s SpotifyProvider) GetPlaylists() ([]provider.Playlist, error) {
 		}
 		for _, p := range page.Playlists {
 			playlists = append(playlists, provider.Playlist{
-				ID:      string(p.ID),
+				ID:      provider.PlaylistID(p.ID.String()),
 				Name:    p.Name,
 				Tracks:  p.Tracks.Total,
 				Creator: p.Owner.DisplayName,

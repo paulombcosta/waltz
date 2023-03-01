@@ -23,6 +23,32 @@ func (y YoutubeProvider) IsLoggedIn() bool {
 	return err == nil
 }
 
+func (y YoutubeProvider) CreatePlaylist(name string) (*provider.PlaylistID, error) {
+	tokens, err := y.tokenProvider.GetToken()
+	if err != nil {
+		return nil, err
+	}
+	client, err := getYoutubeClient(tokens)
+	if err != nil {
+		return nil, err
+	}
+	playlist := &youtube.Playlist{
+		Snippet: &youtube.PlaylistSnippet{
+			Title:       name,
+			Description: "Playlist imported by Waltz",
+		},
+		Status: &youtube.PlaylistStatus{
+			PrivacyStatus: "public",
+		},
+	}
+
+	playlist, err = client.Playlists.Insert([]string{"snippet", "status"}, playlist).Do()
+	if err != nil {
+		return nil, err
+	}
+	return (*provider.PlaylistID)(&playlist.Id), nil
+}
+
 func (y YoutubeProvider) GetPlaylists() ([]provider.Playlist, error) {
 	tokens, err := y.tokenProvider.GetToken()
 	if err != nil {
