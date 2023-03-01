@@ -7,6 +7,7 @@ replace github.com/paulombcosta/waltz/provider => ./provider
 replace github.com/paulombcosta/waltz/provider/youtube => ./provider/youtube
 replace github.com/paulombcosta/waltz/provider/spotify => ./provider/spotify
 replace github.com/paulombcosta/waltz/token => ./token
+replace github.com/paulombcosta/waltz/transfer => ./transfer
 
 require (
 	github.com/go-chi/chi/v5 v5.0.8
