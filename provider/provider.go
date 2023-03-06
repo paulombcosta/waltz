@@ -5,6 +5,7 @@ import (
 )
 
 type PlaylistID string
+type TrackID string
 
 type TokenProvider interface {
 	GetToken() (*oauth2.Token, error)
@@ -15,6 +16,7 @@ type Provider interface {
 	IsLoggedIn() bool
 	GetPlaylists() ([]Playlist, error)
 	CreatePlaylist(name string) (*PlaylistID, error)
+	FindTrack(name string) (*TrackID, error)
 }
 
 type Playlist struct {

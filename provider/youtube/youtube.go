@@ -23,20 +23,20 @@ func (y YoutubeProvider) IsLoggedIn() bool {
 	return err == nil
 }
 
-func (y YoutubeProvider) FetchTrack(name string) (string, error) {
+func (y YoutubeProvider) FindTrack(name string) (*provider.TrackID, error) {
 	tokens, err := y.tokenProvider.GetToken()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	client, err := getYoutubeClient(tokens)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	searchResponse, err := client.Search.List([]string{"id"}).Type("video").MaxResults(1).Q(name).Do()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return searchResponse.Items[0].Id.VideoId, nil
+	return (*provider.TrackID)(&searchResponse.Items[0].Id.VideoId), nil
 }
 
 func (y YoutubeProvider) CreatePlaylist(name string) (*provider.PlaylistID, error) {

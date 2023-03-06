@@ -27,6 +27,10 @@ func (s SpotifyProvider) CreatePlaylist(name string) (*provider.PlaylistID, erro
 	return nil, errors.New("not implemented")
 }
 
+func (s SpotifyProvider) FindTrack(name string) (*provider.TrackID, error) {
+	return nil, errors.New("not implemented")
+}
+
 func (s SpotifyProvider) GetPlaylists() ([]provider.Playlist, error) {
 	token, err := s.tokenProvider.GetToken()
 	if err != nil {
