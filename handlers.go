@@ -40,10 +40,15 @@ func (a application) transferHandler(w http.ResponseWriter, r *http.Request) {
 	var payload TransferPayload
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	log.Println("received payload", payload)
+	if len(payload.Playlists) == 0 {
+		http.Error(w, "no playlists selected", http.StatusBadRequest)
+		return
+	}
+	playlist := payload.Playlists[0]
+	log.Println("starting transfer for playlist: ", playlist)
 }
 
 func (a application) getProvider(name string, r *http.Request, w http.ResponseWriter) (provider.Provider, error) {

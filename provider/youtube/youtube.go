@@ -24,11 +24,7 @@ func (y YoutubeProvider) IsLoggedIn() bool {
 }
 
 func (y YoutubeProvider) FindTrack(name string) (*provider.TrackID, error) {
-	tokens, err := y.tokenProvider.GetToken()
-	if err != nil {
-		return nil, err
-	}
-	client, err := getYoutubeClient(tokens)
+	client, err := y.getYoutubeClient()
 	if err != nil {
 		return nil, err
 	}
@@ -39,12 +35,20 @@ func (y YoutubeProvider) FindTrack(name string) (*provider.TrackID, error) {
 	return (*provider.TrackID)(&searchResponse.Items[0].Id.VideoId), nil
 }
 
-func (y YoutubeProvider) CreatePlaylist(name string) (*provider.PlaylistID, error) {
-	tokens, err := y.tokenProvider.GetToken()
+func (y YoutubeProvider) FindPlaylist(name string) (*provider.PlaylistID, error) {
+	client, err := y.getYoutubeClient()
 	if err != nil {
 		return nil, err
 	}
-	client, err := getYoutubeClient(tokens)
+	searchResponse, err := client.Search.List([]string{"id"}).Type("playlist").MaxResults(1).Q(name).Do()
+	if err != nil {
+		return nil, err
+	}
+	return (*provider.PlaylistID)(&searchResponse.Items[0].Id.PlaylistId), nil
+}
+
+func (y YoutubeProvider) CreatePlaylist(name string) (*provider.PlaylistID, error) {
+	client, err := y.getYoutubeClient()
 	if err != nil {
 		return nil, err
 	}
@@ -66,11 +70,7 @@ func (y YoutubeProvider) CreatePlaylist(name string) (*provider.PlaylistID, erro
 }
 
 func (y YoutubeProvider) GetPlaylists() ([]provider.Playlist, error) {
-	tokens, err := y.tokenProvider.GetToken()
-	if err != nil {
-		return nil, err
-	}
-	client, err := getYoutubeClient(tokens)
+	client, err := y.getYoutubeClient()
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +88,11 @@ func (y YoutubeProvider) GetPlaylists() ([]provider.Playlist, error) {
 	return playlists, nil
 }
 
-func getYoutubeClient(tokens *oauth2.Token) (*youtube.Service, error) {
+func (y YoutubeProvider) getYoutubeClient() (*youtube.Service, error) {
+	tokens, err := y.tokenProvider.GetToken()
+	if err != nil {
+		return nil, err
+	}
 	source := TokenSource{Source: *tokens}
 	youtubeService, err := youtube.NewService(
 		context.Background(), option.WithTokenSource(source))

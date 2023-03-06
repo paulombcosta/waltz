@@ -17,6 +17,7 @@ type Provider interface {
 	GetPlaylists() ([]Playlist, error)
 	CreatePlaylist(name string) (*PlaylistID, error)
 	FindTrack(name string) (*TrackID, error)
+	FindPlaylist(name string) (*PlaylistID, error)
 }
 
 type Playlist struct {
