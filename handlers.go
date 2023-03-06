@@ -49,6 +49,17 @@ func (a application) transferHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	playlist := payload.Playlists[0]
 	log.Println("starting transfer for playlist: ", playlist)
+
+	log.Println("finding if playlist already exists...")
+	yt, err := a.getProvider(PROVIDER_GOOGLE, r, w)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	id, err := yt.FindPlaylist(playlist)
+	if err != nil {
+		log.Fatal("error finding playlist: ", err.Error())
+	}
+	log.Println("found playlist with id: ", id)
 }
 
 func (a application) getProvider(name string, r *http.Request, w http.ResponseWriter) (provider.Provider, error) {
