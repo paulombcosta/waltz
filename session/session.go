@@ -54,12 +54,12 @@ func (s SessionManager) GetSessionTokens(provider string, r *http.Request) (*oau
 	if err != nil {
 		return nil, err
 	}
-	if provider == "google" {
+	if provider == "google" && session.Values[GOOGLE_USER_TOKEN_SESSION_KEY] != nil {
 		return session.Values[GOOGLE_USER_TOKEN_SESSION_KEY].(*oauth2.Token), nil
-	} else if provider == "spotify" {
+	} else if provider == "spotify" && session.Values[SPOTIFY_TOKEN_SESSION_KEY] != nil {
 		return session.Values[SPOTIFY_TOKEN_SESSION_KEY].(*oauth2.Token), nil
 	} else {
-		return nil, errors.New(fmt.Sprintf("invalid provider %s", provider))
+		return nil, fmt.Errorf("no tokens for provider %s", provider)
 	}
 }
 

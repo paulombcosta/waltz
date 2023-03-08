@@ -47,8 +47,9 @@ func (a application) transferHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "no playlists selected", http.StatusBadRequest)
 		return
 	}
+
 	playlist := payload.Playlists[0]
-	log.Println("starting transfer for playlist: ", playlist)
+	log.Println("starting transfer for with id: ", playlist)
 
 	log.Println("finding if playlist already exists...")
 	yt, err := a.getProvider(PROVIDER_GOOGLE, r, w)
