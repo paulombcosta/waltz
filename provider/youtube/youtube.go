@@ -2,6 +2,7 @@ package youtube
 
 import (
 	"context"
+	"log"
 
 	"github.com/paulombcosta/waltz/provider"
 	"golang.org/x/oauth2"
@@ -20,6 +21,9 @@ func New(tokenProvider provider.TokenProvider) *YoutubeProvider {
 // maybe move to sessions, looks more like it
 func (y YoutubeProvider) IsLoggedIn() bool {
 	_, err := y.tokenProvider.RefreshToken()
+	if err != nil {
+		log.Println("youtube login error, : ", err.Error())
+	}
 	return err == nil
 }
 
@@ -45,6 +49,21 @@ func (y YoutubeProvider) FindPlaylist(name string) (*provider.PlaylistID, error)
 		return nil, err
 	}
 	return (*provider.PlaylistID)(&searchResponse.Items[0].Id.PlaylistId), nil
+}
+
+func (y YoutubeProvider) FindPlayListById(id string) (*provider.Playlist, error) {
+	client, err := y.getYoutubeClient()
+	if err != nil {
+		return nil, err
+	}
+	playlist, err := client.Playlists.List([]string{"snippet"}).Id(id).Do()
+	if err != nil {
+		return nil, err
+	}
+	return &provider.Playlist{
+		ID:   provider.PlaylistID(playlist.Items[0].Id),
+		Name: playlist.Items[0].Snippet.Title,
+	}, nil
 }
 
 func (y YoutubeProvider) CreatePlaylist(name string) (*provider.PlaylistID, error) {

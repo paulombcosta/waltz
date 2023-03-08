@@ -35,6 +35,25 @@ func (s SpotifyProvider) FindPlaylist(name string) (*provider.PlaylistID, error)
 	return nil, errors.New("not implemented")
 }
 
+func (s SpotifyProvider) FindPlayListById(id string) (*provider.Playlist, error) {
+	token, err := s.tokenProvider.GetToken()
+	if err != nil {
+		return nil, err
+	}
+	client, err := s.getSpotifyClient(token)
+	if err != nil {
+		return nil, err
+	}
+	p, err := client.GetPlaylist(context.Background(), spotify.ID(id))
+	if err != nil {
+		return nil, err
+	}
+	return &provider.Playlist{
+		ID:   provider.PlaylistID(p.ID.String()),
+		Name: p.Name,
+	}, nil
+}
+
 func (s SpotifyProvider) GetPlaylists() ([]provider.Playlist, error) {
 	token, err := s.tokenProvider.GetToken()
 	if err != nil {
