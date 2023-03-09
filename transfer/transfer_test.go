@@ -32,9 +32,9 @@ func TestShouldReturnErrorIfPlaylistsAreEmpty(t *testing.T) {
 func TestShouldUseExistingPlaylistOnDestination(t *testing.T) {
 	destination := provider.NewMockProvider(t)
 
-	destinationPlaylist := provider.Playlist{ID: "123"}
+	destinationPlaylist := provider.Playlist{ID: "123", Name: "name"}
 
-	// destination.EXPECT().FindPlaylistByName("id").Return(&destinationPlaylist, nil).Once()
+	destination.EXPECT().FindPlaylistByName("name").Return(provider.PlaylistID("123"), nil).Once()
 
 	id, _ := getOrCreatePlaylist(destination, destinationPlaylist)
 
