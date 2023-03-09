@@ -42,3 +42,18 @@ func TestShouldUseExistingPlaylistOnDestination(t *testing.T) {
 		log.Fatalf("expected id to be 123 but it is %s", id)
 	}
 }
+
+func TestShouldCreatePlaylistWhenOriginDoesntExist(t *testing.T) {
+	destination := provider.NewMockProvider(t)
+
+	destinationPlaylist := provider.Playlist{ID: "123", Name: "name"}
+
+	destination.EXPECT().FindPlaylistByName("name").Return("", nil).Once()
+	destination.EXPECT().CreatePlaylist("name").Return("123", nil).Once()
+
+	id, _ := getOrCreatePlaylist(destination, destinationPlaylist)
+
+	if id != "123" {
+		log.Fatalf("expected id to be 123 but it is %s", id)
+	}
+}
