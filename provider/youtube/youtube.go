@@ -137,7 +137,8 @@ func (y YoutubeProvider) AddToPlaylist(playlistId string, tracks []provider.Trac
 	}
 	for _, t := range tracks {
 
-		trackId, err := y.FindTrack(t.Name)
+		log.Println("searching for track: ", t.FullName())
+		trackId, err := y.FindTrack(t.FullName())
 		if err != nil {
 			return err
 		}
@@ -151,7 +152,7 @@ func (y YoutubeProvider) AddToPlaylist(playlistId string, tracks []provider.Trac
 				},
 			},
 		}
-		client.PlaylistItems.Insert([]string{"snippet"}, item)
+		client.PlaylistItems.Insert([]string{"snippet"}, item).Do()
 	}
 	return nil
 }

@@ -1,6 +1,9 @@
 package provider
 
 import (
+	"fmt"
+	"strings"
+
 	"golang.org/x/oauth2"
 )
 
@@ -29,7 +32,13 @@ type FullPlaylist struct {
 }
 
 type Track struct {
-	Name string
+	Name    string
+	Artists []string
+}
+
+func (t Track) FullName() string {
+	artists := strings.Join(t.Artists, ", ")
+	return fmt.Sprintf("%s - %s", artists, t.Name)
 }
 
 type Playlist struct {

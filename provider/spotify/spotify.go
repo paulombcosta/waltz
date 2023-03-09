@@ -52,8 +52,13 @@ func (s SpotifyProvider) GetFullPlaylist(id string) (*provider.FullPlaylist, err
 	log.Println("number of tracks: ", trackPage.Total)
 	tracks := []provider.Track{}
 	for _, t := range trackPage.Tracks {
+		artists := []string{}
+		for _, a := range t.Track.Artists {
+			artists = append(artists, a.Name)
+		}
 		tracks = append(tracks, provider.Track{
-			Name: t.Track.Name,
+			Name:    t.Track.Name,
+			Artists: artists,
 		})
 	}
 	return &provider.FullPlaylist{

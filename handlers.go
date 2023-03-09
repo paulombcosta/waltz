@@ -66,7 +66,7 @@ func (a application) transferHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err.Error())
 	}
 
-	// youtubePlaylistId := ""
+	youtubePlaylistId := ""
 
 	id, err := yt.FindPlaylistByName(playlist.Name)
 	if err != nil {
@@ -79,10 +79,10 @@ func (a application) transferHandler(w http.ResponseWriter, r *http.Request) {
 			log.Fatal("error creating playlist: ", err.Error())
 		}
 		log.Println("playlist created with id ", id)
-		// youtubePlaylistId = string(id)
+		youtubePlaylistId = string(id)
 	} else {
 		log.Println("found playlist with id: ", id)
-		// youtubePlaylistId = string(id)
+		youtubePlaylistId = string(id)
 	}
 
 	log.Println("getting full playlist from spotify...")
@@ -96,8 +96,13 @@ func (a application) transferHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO
 	// I should only transfer what's missing from the other provider. I need to
 	// the full list inside the previous provider first.
-
-	log.Println("tranfering to youtube")
+	firstTrack := tracks.Tracks[0]
+	log.Printf("trying to transfer track: %s to youtube", firstTrack.Name)
+	err = yt.AddToPlaylist(youtubePlaylistId, []provider.Track{firstTrack})
+	if err != nil {
+		log.Fatal("failed to transfer tracks to youtube", err.Error())
+	}
+	log.Println("done")
 }
 
 func (a application) getProvider(name string, r *http.Request, w http.ResponseWriter) (provider.Provider, error) {
