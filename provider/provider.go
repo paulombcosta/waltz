@@ -15,6 +15,7 @@ type TokenProvider interface {
 	RefreshToken() (*oauth2.Token, error)
 }
 
+//go:generate mockery --name Provider
 type Provider interface {
 	IsLoggedIn() bool
 	GetPlaylists() ([]Playlist, error)
