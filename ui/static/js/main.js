@@ -1,6 +1,10 @@
 function getSelectedPlaylists() {
     return $("#table input[type=checkbox]:checked").map(function() {
-        return this.id;
+        const name = document.getElementById(this.id)
+            .parentElement
+            .parentElement
+            .getElementsByClassName("name")[0].textContent;
+        return {id: this.id, name: name};
     }).get();
 }
 

@@ -15,10 +15,21 @@ type TokenProvider interface {
 type Provider interface {
 	IsLoggedIn() bool
 	GetPlaylists() ([]Playlist, error)
-	CreatePlaylist(name string) (*PlaylistID, error)
-	FindTrack(name string) (*TrackID, error)
-	FindPlaylist(name string) (*PlaylistID, error)
+	CreatePlaylist(name string) (PlaylistID, error)
+	FindTrack(name string) (TrackID, error)
+	FindPlaylistByName(name string) (PlaylistID, error)
 	FindPlayListById(id string) (*Playlist, error)
+	GetFullPlaylist(id string) (*FullPlaylist, error)
+	AddToPlaylist(playlistId string, tracks []Track) error
+}
+
+type FullPlaylist struct {
+	Playlist
+	Tracks []Track
+}
+
+type Track struct {
+	Name string
 }
 
 type Playlist struct {

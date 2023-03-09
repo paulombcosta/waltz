@@ -33,7 +33,12 @@ type PageState struct {
 }
 
 type TransferPayload struct {
-	Playlists []string `json:"playlists"`
+	Playlists []TransferPlaylist `json:"playlists"`
+}
+
+type TransferPlaylist struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
 
 func (a application) transferHandler(w http.ResponseWriter, r *http.Request) {
@@ -49,18 +54,50 @@ func (a application) transferHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	playlist := payload.Playlists[0]
-	log.Println("starting transfer for with id: ", playlist)
+	log.Println("starting transfer for the playlist: ", playlist)
 
 	log.Println("finding if playlist already exists...")
 	yt, err := a.getProvider(PROVIDER_GOOGLE, r, w)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	id, err := yt.FindPlaylist(playlist)
+	spotify, err := a.getProvider(PROVIDER_SPOTIFY, r, w)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	// youtubePlaylistId := ""
+
+	id, err := yt.FindPlaylistByName(playlist.Name)
 	if err != nil {
 		log.Fatal("error finding playlist: ", err.Error())
 	}
-	log.Println("found playlist with id: ", id)
+	if id == "" {
+		log.Println("playlist not found, creating a new one")
+		id, err = yt.CreatePlaylist(playlist.Name)
+		if err != nil {
+			log.Fatal("error creating playlist: ", err.Error())
+		}
+		log.Println("playlist created with id ", id)
+		// youtubePlaylistId = string(id)
+	} else {
+		log.Println("found playlist with id: ", id)
+		// youtubePlaylistId = string(id)
+	}
+
+	log.Println("getting full playlist from spotify...")
+	tracks, err := spotify.GetFullPlaylist(playlist.ID)
+	if err != nil {
+		log.Fatal("error getting full playlist from spotify", err.Error())
+	}
+
+	log.Printf("got tracks from spotify: %v", tracks)
+
+	// TODO
+	// I should only transfer what's missing from the other provider. I need to
+	// the full list inside the previous provider first.
+
+	log.Println("tranfering to youtube")
 }
 
 func (a application) getProvider(name string, r *http.Request, w http.ResponseWriter) (provider.Provider, error) {

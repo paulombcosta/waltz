@@ -3,11 +3,11 @@ package spotify
 import (
 	"context"
 	"errors"
+	"log"
 
 	"github.com/paulombcosta/waltz/provider"
 	"github.com/zmb3/spotify/v2"
 	spotifyauth "github.com/zmb3/spotify/v2/auth"
-	"golang.org/x/oauth2"
 )
 
 type SpotifyProvider struct {
@@ -23,24 +23,46 @@ func (s SpotifyProvider) IsLoggedIn() bool {
 	return err == nil
 }
 
-func (s SpotifyProvider) CreatePlaylist(name string) (*provider.PlaylistID, error) {
-	return nil, errors.New("not implemented")
+func (s SpotifyProvider) CreatePlaylist(name string) (provider.PlaylistID, error) {
+	return "", errors.New("not implemented")
 }
 
-func (s SpotifyProvider) FindTrack(name string) (*provider.TrackID, error) {
-	return nil, errors.New("not implemented")
+func (s SpotifyProvider) FindTrack(name string) (provider.TrackID, error) {
+	return "", errors.New("not implemented")
 }
 
-func (s SpotifyProvider) FindPlaylist(name string) (*provider.PlaylistID, error) {
-	return nil, errors.New("not implemented")
+func (s SpotifyProvider) FindPlaylistByName(name string) (provider.PlaylistID, error) {
+	return "", errors.New("not implemented")
 }
 
-func (s SpotifyProvider) FindPlayListById(id string) (*provider.Playlist, error) {
-	token, err := s.tokenProvider.GetToken()
+func (s SpotifyProvider) AddToPlaylist(playlistId string, tracks []provider.Track) error {
+	return errors.New("not implemented")
+}
+
+func (s SpotifyProvider) GetFullPlaylist(id string) (*provider.FullPlaylist, error) {
+	client, err := s.getSpotifyClient()
 	if err != nil {
 		return nil, err
 	}
-	client, err := s.getSpotifyClient(token)
+	fullPlaylist, err := client.GetPlaylist(context.Background(), spotify.ID(id))
+	if err != nil {
+		return nil, err
+	}
+	trackPage := fullPlaylist.Tracks
+	log.Println("number of tracks: ", trackPage.Total)
+	tracks := []provider.Track{}
+	for _, t := range trackPage.Tracks {
+		tracks = append(tracks, provider.Track{
+			Name: t.Track.Name,
+		})
+	}
+	return &provider.FullPlaylist{
+		Tracks: tracks,
+	}, nil
+}
+
+func (s SpotifyProvider) FindPlayListById(id string) (*provider.Playlist, error) {
+	client, err := s.getSpotifyClient()
 	if err != nil {
 		return nil, err
 	}
@@ -55,11 +77,7 @@ func (s SpotifyProvider) FindPlayListById(id string) (*provider.Playlist, error)
 }
 
 func (s SpotifyProvider) GetPlaylists() ([]provider.Playlist, error) {
-	token, err := s.tokenProvider.GetToken()
-	if err != nil {
-		return nil, err
-	}
-	client, err := s.getSpotifyClient(token)
+	client, err := s.getSpotifyClient()
 	if err != nil {
 		return nil, err
 	}
@@ -95,8 +113,12 @@ func getPaginatedPlaylists(client *spotify.Client, ctx context.Context, offset i
 	}
 }
 
-func (s SpotifyProvider) getSpotifyClient(tok *oauth2.Token) (*spotify.Client, error) {
-	if tok != nil {
+func (s SpotifyProvider) getSpotifyClient() (*spotify.Client, error) {
+	token, err := s.tokenProvider.GetToken()
+	if err != nil {
+		return nil, err
+	}
+	if token != nil {
 		newTokens, err := s.tokenProvider.RefreshToken()
 		if err != nil {
 			return nil, err

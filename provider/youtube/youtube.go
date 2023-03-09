@@ -2,6 +2,7 @@ package youtube
 
 import (
 	"context"
+	"errors"
 	"log"
 
 	"github.com/paulombcosta/waltz/provider"
@@ -12,6 +13,23 @@ import (
 
 type YoutubeProvider struct {
 	tokenProvider provider.TokenProvider
+	playlists     []*youtube.Playlist
+}
+
+func (y YoutubeProvider) getPlaylists() ([]*youtube.Playlist, error) {
+	if y.playlists != nil {
+		return y.playlists, nil
+	}
+	client, err := y.getYoutubeClient()
+	if err != nil {
+		return nil, err
+	}
+	response, err := client.Playlists.List([]string{"snippet", "id"}).Mine(true).Do()
+	if err != nil {
+		return nil, err
+	}
+	y.playlists = response.Items
+	return y.playlists, nil
 }
 
 func New(tokenProvider provider.TokenProvider) *YoutubeProvider {
@@ -27,28 +45,29 @@ func (y YoutubeProvider) IsLoggedIn() bool {
 	return err == nil
 }
 
-func (y YoutubeProvider) FindTrack(name string) (*provider.TrackID, error) {
+func (y YoutubeProvider) FindTrack(name string) (provider.TrackID, error) {
 	client, err := y.getYoutubeClient()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	searchResponse, err := client.Search.List([]string{"id"}).Type("video").MaxResults(1).Q(name).Do()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return (*provider.TrackID)(&searchResponse.Items[0].Id.VideoId), nil
+	return provider.TrackID(searchResponse.Items[0].Id.VideoId), nil
 }
 
-func (y YoutubeProvider) FindPlaylist(name string) (*provider.PlaylistID, error) {
-	client, err := y.getYoutubeClient()
+func (y YoutubeProvider) FindPlaylistByName(name string) (provider.PlaylistID, error) {
+	playlists, err := y.getPlaylists()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	searchResponse, err := client.Search.List([]string{"id"}).Type("playlist").MaxResults(1).Q(name).Do()
-	if err != nil {
-		return nil, err
+	for _, p := range playlists {
+		if p.Snippet.Title == name {
+			return provider.PlaylistID(p.Id), nil
+		}
 	}
-	return (*provider.PlaylistID)(&searchResponse.Items[0].Id.PlaylistId), nil
+	return "", nil
 }
 
 func (y YoutubeProvider) FindPlayListById(id string) (*provider.Playlist, error) {
@@ -66,10 +85,10 @@ func (y YoutubeProvider) FindPlayListById(id string) (*provider.Playlist, error)
 	}, nil
 }
 
-func (y YoutubeProvider) CreatePlaylist(name string) (*provider.PlaylistID, error) {
+func (y YoutubeProvider) CreatePlaylist(name string) (provider.PlaylistID, error) {
 	client, err := y.getYoutubeClient()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	playlist := &youtube.Playlist{
 		Snippet: &youtube.PlaylistSnippet{
@@ -83,9 +102,9 @@ func (y YoutubeProvider) CreatePlaylist(name string) (*provider.PlaylistID, erro
 
 	playlist, err = client.Playlists.Insert([]string{"snippet", "status"}, playlist).Do()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return (*provider.PlaylistID)(&playlist.Id), nil
+	return provider.PlaylistID(playlist.Id), nil
 }
 
 func (y YoutubeProvider) GetPlaylists() ([]provider.Playlist, error) {
@@ -105,6 +124,36 @@ func (y YoutubeProvider) GetPlaylists() ([]provider.Playlist, error) {
 		playlists = append(playlists, provider.Playlist{Name: p.Snippet.Title})
 	}
 	return playlists, nil
+}
+
+func (y YoutubeProvider) GetFullPlaylist(id string) (*provider.FullPlaylist, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (y YoutubeProvider) AddToPlaylist(playlistId string, tracks []provider.Track) error {
+	client, err := y.getYoutubeClient()
+	if err != nil {
+		return nil
+	}
+	for _, t := range tracks {
+
+		trackId, err := y.FindTrack(t.Name)
+		if err != nil {
+			return err
+		}
+
+		item := &youtube.PlaylistItem{
+			Snippet: &youtube.PlaylistItemSnippet{
+				PlaylistId: playlistId,
+				ResourceId: &youtube.ResourceId{
+					Kind:    "youtube#video",
+					VideoId: string(trackId),
+				},
+			},
+		}
+		client.PlaylistItems.Insert([]string{"snippet"}, item)
+	}
+	return nil
 }
 
 func (y YoutubeProvider) getYoutubeClient() (*youtube.Service, error) {

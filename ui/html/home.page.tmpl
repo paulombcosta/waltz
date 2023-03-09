@@ -30,7 +30,7 @@
             {{ range .Playlists }}
                 <tr>
                     <td><input type="checkbox" id="{{ .ID }}"></td>
-                    <td>{{ .Name }}</td>
+                    <td class="name">{{ .Name }}</td>
                     <td>{{ .Tracks }}</td>
                     <td>{{ .Creator }}</td>
                 </tr>
