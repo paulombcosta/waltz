@@ -14,8 +14,6 @@ replace github.com/paulombcosta/waltz/token => ./token
 
 replace github.com/paulombcosta/waltz/transfer => ./transfer
 
-replace github.com/paulombcosta/waltz/provider/mocks => ./provider/mocks
-
 require (
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/gorilla/sessions v1.2.1
