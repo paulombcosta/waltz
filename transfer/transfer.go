@@ -27,9 +27,18 @@ func (t TransferClient) To(destination provider.Provider) error {
 		return errors.New("cannot import: list is empty")
 	}
 
+	log.Println("fetching playlists")
 	for _, playlist := range t.playlists {
 		// Find if playlist already exists on destination
-		_, err := getOrCreatePlaylist(destination, playlist)
+		playlistId, err := getOrCreatePlaylist(destination, playlist)
+		if err != nil {
+			return err
+		}
+
+		log.Printf("fetching tracks on %s for playlist %s", t.Origin.Name(), playlist.Name)
+		fullPlaylist, err := t.Origin.GetFullPlaylist(playlistId)
+		destination.AddToPlaylist(playlistId, fullPlaylist.Tracks)
+		log.Printf("finished importing for %s\n", playlist.Name)
 		if err != nil {
 			return err
 		}
@@ -45,7 +54,7 @@ func getOrCreatePlaylist(destination provider.Provider, playlist provider.Playli
 		return "", err
 	}
 	if id == "" {
-		log.Println("playlist not found, creating a new one")
+		log.Printf("playlist %s not found, creating a new one", playlist.Name)
 		id, err = destination.CreatePlaylist(playlist.Name)
 		if err != nil {
 			return "", err
@@ -53,6 +62,7 @@ func getOrCreatePlaylist(destination provider.Provider, playlist provider.Playli
 		log.Println("playlist created with id ", id)
 		destinationPlaylist = string(id)
 	} else {
+		log.Printf("playlist %s already exists", playlist.Name)
 		destinationPlaylist = string(id)
 	}
 	return destinationPlaylist, nil

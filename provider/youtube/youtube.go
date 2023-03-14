@@ -54,6 +54,9 @@ func (y YoutubeProvider) FindTrack(name string) (provider.TrackID, error) {
 	if err != nil {
 		return "", err
 	}
+	if len(searchResponse.Items) == 0 {
+		return "", nil
+	}
 	return provider.TrackID(searchResponse.Items[0].Id.VideoId), nil
 }
 
@@ -147,6 +150,11 @@ func (y YoutubeProvider) AddToPlaylist(playlistId string, tracks []provider.Trac
 			return err
 		}
 
+		if trackId == "" {
+			log.Printf("track %s not found. Skipping", t.FullName())
+			continue
+		}
+
 		item := &youtube.PlaylistItem{
 			Snippet: &youtube.PlaylistItemSnippet{
 				PlaylistId: playlistId,
@@ -156,7 +164,11 @@ func (y YoutubeProvider) AddToPlaylist(playlistId string, tracks []provider.Trac
 				},
 			},
 		}
-		client.PlaylistItems.Insert([]string{"snippet"}, item).Do()
+		_, err = client.PlaylistItems.Insert([]string{"snippet"}, item).Do()
+		if err != nil {
+			return err
+		}
+		log.Printf("successfully imported %s", item.Snippet.Title)
 	}
 	return nil
 }
