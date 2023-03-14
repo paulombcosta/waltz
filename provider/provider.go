@@ -34,6 +34,7 @@ type FullPlaylist struct {
 }
 
 type Track struct {
+	ID      string
 	Name    string
 	Artists []string
 }
