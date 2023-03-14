@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"html/template"
-	"log"
 	"net/http"
 	"path/filepath"
 
@@ -13,6 +12,7 @@ import (
 	"github.com/paulombcosta/waltz/provider/spotify"
 	"github.com/paulombcosta/waltz/provider/youtube"
 	"github.com/paulombcosta/waltz/token"
+	"github.com/paulombcosta/waltz/transfer"
 	"golang.org/x/oauth2"
 )
 
@@ -36,6 +36,17 @@ type TransferPayload struct {
 	Playlists []TransferPlaylist `json:"playlists"`
 }
 
+func (t TransferPayload) ToProviderPlaylist() []provider.Playlist {
+	providerPlaylist := []provider.Playlist{}
+	for _, p := range t.Playlists {
+		providerPlaylist = append(providerPlaylist, provider.Playlist{
+			ID:   provider.PlaylistID(p.ID),
+			Name: p.Name,
+		})
+	}
+	return providerPlaylist
+}
+
 type TransferPlaylist struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
@@ -53,56 +64,19 @@ func (a application) transferHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	playlist := payload.Playlists[0]
-	log.Println("starting transfer for the playlist: ", playlist)
-
-	log.Println("finding if playlist already exists...")
-	yt, err := a.getProvider(PROVIDER_GOOGLE, r, w)
+	origin, err := a.getProvider(PROVIDER_SPOTIFY, r, w)
 	if err != nil {
-		log.Fatal(err.Error())
+		http.Error(w, "unable to get Google provider", http.StatusBadRequest)
+		return
 	}
-	spotify, err := a.getProvider(PROVIDER_SPOTIFY, r, w)
+
+	destination, err := a.getProvider(PROVIDER_SPOTIFY, r, w)
 	if err != nil {
-		log.Fatal(err.Error())
+		http.Error(w, "unable to get Google provider", http.StatusBadRequest)
+		return
 	}
 
-	youtubePlaylistId := ""
-
-	id, err := yt.FindPlaylistByName(playlist.Name)
-	if err != nil {
-		log.Fatal("error finding playlist: ", err.Error())
-	}
-	if id == "" {
-		log.Println("playlist not found, creating a new one")
-		id, err = yt.CreatePlaylist(playlist.Name)
-		if err != nil {
-			log.Fatal("error creating playlist: ", err.Error())
-		}
-		log.Println("playlist created with id ", id)
-		youtubePlaylistId = string(id)
-	} else {
-		log.Println("found playlist with id: ", id)
-		youtubePlaylistId = string(id)
-	}
-
-	log.Println("getting full playlist from spotify...")
-	tracks, err := spotify.GetFullPlaylist(playlist.ID)
-	if err != nil {
-		log.Fatal("error getting full playlist from spotify", err.Error())
-	}
-
-	log.Printf("got tracks from spotify: %v", tracks)
-
-	// TODO
-	// I should only transfer what's missing from the other provider. I need to
-	// the full list inside the previous provider first.
-	firstTrack := tracks.Tracks[0]
-	log.Printf("trying to transfer track: %s to youtube", firstTrack.Name)
-	err = yt.AddToPlaylist(youtubePlaylistId, []provider.Track{firstTrack})
-	if err != nil {
-		log.Fatal("failed to transfer tracks to youtube", err.Error())
-	}
-	log.Println("done")
+	transfer.Transfer(origin, payload.ToProviderPlaylist()).To(destination)
 }
 
 func (a application) getProvider(name string, r *http.Request, w http.ResponseWriter) (provider.Provider, error) {
