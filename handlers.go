@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 	"html/template"
 	"net/http"
 	"path/filepath"
@@ -66,13 +66,13 @@ func (a application) transferHandler(w http.ResponseWriter, r *http.Request) {
 
 	origin, err := a.getProvider(PROVIDER_SPOTIFY, r, w)
 	if err != nil {
-		http.Error(w, "unable to get Google provider", http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	destination, err := a.getProvider(PROVIDER_SPOTIFY, r, w)
+	destination, err := a.getProvider(PROVIDER_GOOGLE, r, w)
 	if err != nil {
-		http.Error(w, "unable to get Google provider", http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -86,7 +86,7 @@ func (a application) getProvider(name string, r *http.Request, w http.ResponseWr
 	} else if name == PROVIDER_SPOTIFY {
 		return spotify.New(tokenProvider), nil
 	} else {
-		return nil, errors.New("invalid provider")
+		return nil, fmt.Errorf("invalid provider %s", name)
 	}
 }
 
