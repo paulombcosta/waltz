@@ -7,9 +7,15 @@ import (
 	"github.com/paulombcosta/waltz/provider"
 )
 
+func getMockProvider(t *testing.T) *provider.MockProvider {
+	p := provider.NewMockProvider(t)
+	p.EXPECT().Name().Return("Test")
+	return p
+}
+
 func TestShouldReturnErrorIfPlaylistsAreNil(t *testing.T) {
-	origin := provider.NewMockProvider(t)
-	destination := provider.NewMockProvider(t)
+	origin := getMockProvider(t)
+	destination := getMockProvider(t)
 	err := Transfer(origin, nil).To(destination)
 	expectedMsg := "cannot import: list is null"
 	actual := err.Error()
@@ -19,8 +25,8 @@ func TestShouldReturnErrorIfPlaylistsAreNil(t *testing.T) {
 }
 
 func TestShouldReturnErrorIfPlaylistsAreEmpty(t *testing.T) {
-	origin := provider.NewMockProvider(t)
-	destination := provider.NewMockProvider(t)
+	origin := getMockProvider(t)
+	destination := getMockProvider(t)
 	err := Transfer(origin, []provider.Playlist{}).To(destination)
 	expectedMsg := "cannot import: list is empty"
 	actual := err.Error()
