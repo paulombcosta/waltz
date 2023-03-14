@@ -17,6 +17,9 @@ func Transfer(provider provider.Provider, playlists []provider.Playlist) Transfe
 }
 
 func (t TransferClient) To(destination provider.Provider) error {
+
+	log.Printf("starting transfer from %s to %s", t.Origin.Name(), destination.Name())
+
 	if t.playlists == nil {
 		return errors.New("cannot import: list is null")
 	}

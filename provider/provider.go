@@ -17,6 +17,7 @@ type TokenProvider interface {
 
 //go:generate mockery --name Provider
 type Provider interface {
+	Name() string
 	IsLoggedIn() bool
 	GetPlaylists() ([]Playlist, error)
 	CreatePlaylist(name string) (PlaylistID, error)

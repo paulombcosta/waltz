@@ -110,6 +110,10 @@ func (s SpotifyProvider) GetPlaylists() ([]provider.Playlist, error) {
 	return playlists, nil
 }
 
+func (s SpotifyProvider) Name() string {
+	return "Spotify"
+}
+
 func getPaginatedPlaylists(client *spotify.Client, ctx context.Context, offset int) (*spotify.SimplePlaylistPage, error) {
 	if offset == 0 {
 		return client.CurrentUsersPlaylists(context.Background(), spotify.Limit(50))

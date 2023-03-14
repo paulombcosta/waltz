@@ -126,6 +126,10 @@ func (y YoutubeProvider) GetPlaylists() ([]provider.Playlist, error) {
 	return playlists, nil
 }
 
+func (y YoutubeProvider) Name() string {
+	return "YouTube"
+}
+
 func (y YoutubeProvider) GetFullPlaylist(id string) (*provider.FullPlaylist, error) {
 	return nil, errors.New("not implemented")
 }
