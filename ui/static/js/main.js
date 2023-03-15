@@ -14,9 +14,21 @@ function toggleSelectAll(checked) {
     } else {
         $('#table input[type=checkbox]').prop('checked', false)
     }
+    toggleSubmitButton();
+}
+
+function toggleSubmitButton() {
+    if ($("#table input[type=checkbox]:checked").length == 0) {
+        document.getElementById("submit").classList.add("disabled")
+    } else {
+        document.getElementById("submit").classList.remove("disabled")
+    }
 }
 
 function setup() {
+    $(".checkbox").change(function() {
+        toggleSubmitButton();
+    })
     document.getElementById("submit").onclick = () => {
         const selectedPlaylists = getSelectedPlaylists()
         fetch("/transfer", {

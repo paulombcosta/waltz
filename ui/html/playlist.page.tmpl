@@ -1,7 +1,10 @@
 {{template "base" .}}
 
 {{ define "header" }}
-    <p>playlist</p>
+    <div class="playlistHeader">
+        <p>Select Spotify playlists to migrate</p>
+        <button type="button" id="submit" class="disabled">Start Transfer</button>
+    </div>
 {{ end }} 
 
 {{ define "main" }}
@@ -20,14 +23,13 @@
             </tr>
             {{ range .Playlists }}
                 <tr>
-                    <td><input type="checkbox" id="{{ .ID }}"></td>
+                    <td><input type="checkbox" id="{{ .ID }}" class="checkbox"></td>
                     <td class="name">{{ .Name }}</td>
                     <td>{{ .Tracks }}</td>
                     <td>{{ .Creator }}</td>
                 </tr>
             {{ end }}
         </table>
-        <button type="button" id="submit">Start Transfer</button>
         {{ end }}
 </div>
 {{ end }}
