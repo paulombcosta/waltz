@@ -143,7 +143,6 @@ func (y YoutubeProvider) GetFullPlaylist(id string) (*provider.FullPlaylist, err
 	}
 	tracks := []provider.Track{}
 	nextPageToken := ""
-	log.Println("next page token = ", nextPageToken)
 	for {
 		playlistItemListCall := client.PlaylistItems.List([]string{"contentDetails"}).
 			PlaylistId(id).
@@ -161,7 +160,6 @@ func (y YoutubeProvider) GetFullPlaylist(id string) (*provider.FullPlaylist, err
 			})
 		}
 		nextPageToken = playlistItemListResponse.NextPageToken
-		log.Println("next page token = ", nextPageToken)
 
 		if nextPageToken == "" {
 			break
