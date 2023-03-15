@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	"path/filepath"
 
@@ -76,7 +77,15 @@ func (a application) transferHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	transfer.Transfer(origin, payload.ToProviderPlaylist()).To(destination)
+	transferList := payload.ToProviderPlaylist()
+	log.Printf("starting to transfers playlists: %v", transferList)
+
+	err = transfer.Transfer(origin, transferList).To(destination)
+	if err != nil {
+		log.Println("top error, ", err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (a application) getProvider(name string, r *http.Request, w http.ResponseWriter) (provider.Provider, error) {

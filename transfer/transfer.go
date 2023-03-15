@@ -30,18 +30,21 @@ func (t TransferClient) To(destination provider.Provider) error {
 	log.Println("fetching playlists")
 	for _, playlist := range t.playlists {
 		// Find if playlist already exists on destination
-		playlistId, err := getOrCreatePlaylist(destination, playlist)
+		destinationPlaylistId, err := getOrCreatePlaylist(destination, playlist)
 		if err != nil {
 			return err
 		}
 
 		log.Printf("fetching tracks on %s for playlist %s", t.Origin.Name(), playlist.Name)
-		fullPlaylist, err := t.Origin.GetFullPlaylist(playlistId)
-		destination.AddToPlaylist(playlistId, fullPlaylist.Tracks)
-		log.Printf("finished importing for %s\n", playlist.Name)
+		fullPlaylist, err := t.Origin.GetFullPlaylist(string(playlist.ID))
 		if err != nil {
 			return err
 		}
+		err = destination.AddToPlaylist(destinationPlaylistId, fullPlaylist.Tracks)
+		if err != nil {
+			return err
+		}
+		log.Printf("finished importing for %s\n", playlist.Name)
 	}
 
 	return nil
