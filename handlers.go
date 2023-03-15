@@ -146,7 +146,7 @@ func (a application) homepageHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		tmpl := template.Must(loadPage("home"))
+		tmpl := template.Must(loadPage("login"))
 		err = tmpl.Execute(w, pageState)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

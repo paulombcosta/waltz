@@ -1,8 +1,13 @@
 {{template "base" .}}
 
+{{ define "header" }}
+    <div class="loginHeader">
+        <p>Login on Youtube & Spotify</p>
+    </div>
+{{ end }} 
+
 {{ define "main" }}
 <div id="main">
-    <h2>Login on Youtube & Spotify</h2>
     {{ if .LoggedInSpotify }}
         <p>Spotify login status: Logged in</p>
     {{ else }}
