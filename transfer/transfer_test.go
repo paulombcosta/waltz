@@ -1,6 +1,7 @@
 package transfer
 
 import (
+	"errors"
 	"log"
 	"testing"
 
@@ -62,4 +63,24 @@ func TestShouldCreatePlaylistWhenOriginDoesntExist(t *testing.T) {
 	if id != "123" {
 		log.Fatalf("expected id to be 123 but it is %s", id)
 	}
+}
+
+func TestShouldUseOriginPlaylistIDWhenFetchingFullPlaylist(t *testing.T) {
+	origin := getMockProvider(t)
+	destination := getMockProvider(t)
+
+	originPlaylistID := "origin-ID"
+	destinationPlaylistID := "destination-ID"
+
+	playlists := []provider.Playlist{
+		{
+			ID:   provider.PlaylistID(originPlaylistID),
+			Name: "playlist",
+		},
+	}
+
+	destination.EXPECT().FindPlaylistByName("playlist").Return(provider.PlaylistID(destinationPlaylistID), nil).Once()
+	origin.EXPECT().GetFullPlaylist(originPlaylistID).Return(nil, errors.New("stop")).Once()
+
+	Transfer(origin, playlists).To(destination)
 }

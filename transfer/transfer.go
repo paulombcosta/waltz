@@ -29,7 +29,6 @@ func (t TransferClient) To(destination provider.Provider) error {
 
 	log.Println("fetching playlists")
 	for _, playlist := range t.playlists {
-		// Find if playlist already exists on destination
 		destinationPlaylistId, err := getOrCreatePlaylist(destination, playlist)
 		if err != nil {
 			return err
