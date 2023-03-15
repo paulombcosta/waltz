@@ -31,7 +31,7 @@
     margin-top: 10px;
 }
 
-button {
+.submitButton {
     font-size: 18px;
     border-radius: 4px;
     background-color: #1e73be;
@@ -45,6 +45,11 @@ button {
 .disabled {
     pointer-events: none;
     opacity: .65;
+}
+
+.loginRow {
+    display: flex;
+    flex-direction: row;
 }
 
 body {
