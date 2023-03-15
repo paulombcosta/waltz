@@ -3,11 +3,11 @@
 {{ define "main" }}
 <div id="main">
         {{ with .PlaylistsContent }}
-        <div class="test">
-            <input class="test" type="checkbox" id="bulk" name="Select all"/>
+        <div class="selectAllContainer">
+            <input class="selectAllInput" type="checkbox" id="bulk" name="Select all"/>
             <p>Select all</p>
         </div>
-        <table id="table">
+        <table id="table" class="playlistTable">
             <tr>
                 <th>Selected</th>
                 <th>Name</th>

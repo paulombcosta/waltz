@@ -19,6 +19,29 @@ body {
     justify-content: center;
 }
 
+.selectAllContainer {
+    display: flex;
+    flex-direction: row;
+}
+
+.selectAllInput {
+    margin-right: 10px;
+}
+
+.playlistTable {
+    width: 100%;
+}
+
+.playlistTable th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+}
+
+.playlistTable td, .playlistTable th {
+    border: 1px solid #ddd;
+    padding: 8px;
+  }
 /* #main {
     display: flex;
     justify-content: center;
