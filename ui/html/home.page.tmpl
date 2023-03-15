@@ -1,7 +1,7 @@
 {{template "base" .}}
 
 {{ define "main" }}
-<div>
+<div id="main">
     <h2>Login on Youtube & Spotify</h2>
     {{ if .LoggedInSpotify }}
         <p>Spotify login status: Logged in</p>
@@ -14,32 +14,6 @@
     {{ else }}
         <p>Youtube login status: Logged out</p>
         <a href="/auth?provider=google"><button>Login on Youtube</button></a>
-    {{ end }}
-    <h2>Select playlists</h2>
-    {{ if and .LoggedInSpotify .LoggedInYoutube }}
-        {{ with .PlaylistsContent }}
-        <input type="checkbox" id="bulk" name="Select all"/>
-        <p>Select all</p>
-        <table id="table">
-            <tr>
-                <th>Selected</th>
-                <th>Name</th>
-                <th>Tracks</th>
-                <th>Creator</th>
-            </tr>
-            {{ range .Playlists }}
-                <tr>
-                    <td><input type="checkbox" id="{{ .ID }}"></td>
-                    <td class="name">{{ .Name }}</td>
-                    <td>{{ .Tracks }}</td>
-                    <td>{{ .Creator }}</td>
-                </tr>
-            {{ end }}
-        </table>
-        <button type="button" id="submit">Start Transfer</button>
-        {{ end }}
-    {{ else }}
-        <p>waiting</p>
     {{ end }}
 </div>
 {{ end }}

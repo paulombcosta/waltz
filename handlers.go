@@ -139,18 +139,25 @@ func (a application) homepageHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		pageState.PlaylistsContent = content
+		tmpl := template.Must(loadPage("playlist"))
+		err = tmpl.Execute(w, pageState)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		tmpl := template.Must(loadPage("home"))
+		err = tmpl.Execute(w, pageState)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 
-	tmpl := template.Must(loadHomeTemplate())
-	err = tmpl.Execute(w, pageState)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
 }
 
-func loadHomeTemplate() (*template.Template, error) {
-	name := "./ui/html/home.page.tmpl"
+func loadPage(templateName string) (*template.Template, error) {
+	name := fmt.Sprintf("./ui/html/%s.page.tmpl", templateName)
 	ts, err := template.New(filepath.Base(name)).ParseFiles(name)
 	if err != nil {
 		return nil, err

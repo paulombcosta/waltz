@@ -1,9 +1,29 @@
 {{template "base" .}}
 
 {{ define "main" }}
-    <table>
-    {{ range .Playlists }}
-        <li><p>{{ .Name }}</p></li>
-    {{end}}
-    </table>
-{{end}}
+<div id="main">
+        {{ with .PlaylistsContent }}
+        <div class="test">
+            <input class="test" type="checkbox" id="bulk" name="Select all"/>
+            <p>Select all</p>
+        </div>
+        <table id="table">
+            <tr>
+                <th>Selected</th>
+                <th>Name</th>
+                <th>Tracks</th>
+                <th>Creator</th>
+            </tr>
+            {{ range .Playlists }}
+                <tr>
+                    <td><input type="checkbox" id="{{ .ID }}"></td>
+                    <td class="name">{{ .Name }}</td>
+                    <td>{{ .Tracks }}</td>
+                    <td>{{ .Creator }}</td>
+                </tr>
+            {{ end }}
+        </table>
+        <button type="button" id="submit">Start Transfer</button>
+        {{ end }}
+</div>
+{{ end }}
