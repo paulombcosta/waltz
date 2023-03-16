@@ -4,21 +4,72 @@ import (
 	"errors"
 	"log"
 
+	"github.com/gorilla/websocket"
 	"github.com/paulombcosta/waltz/provider"
 )
 
+type TransferClientBuilder struct {
+	origin      provider.Provider
+	playlists   []provider.Playlist
+	publisher   ProgressPublisher
+	destination provider.Provider
+}
+
+func Transfer() TransferClientBuilder {
+	return TransferClientBuilder{}
+}
+
+func (t TransferClientBuilder) Playlists(playlists []provider.Playlist) TransferClientBuilder {
+	t.playlists = playlists
+	return t
+}
+
+func (t TransferClientBuilder) From(origin provider.Provider) TransferClientBuilder {
+	t.origin = origin
+	return t
+}
+
+func (t TransferClientBuilder) To(destination provider.Provider) TransferClientBuilder {
+	t.destination = destination
+	return t
+}
+
+func (t TransferClientBuilder) WithProgressObserver(p ProgressPublisher) TransferClientBuilder {
+	t.publisher = p
+	return t
+}
+
+// TODO validate fields here
+func (t TransferClientBuilder) Build() TransferClient {
+	return TransferClient(t)
+}
+
+type WebSocketProgressPublisher struct {
+	Conn *websocket.Conn
+}
+
+func (publisher WebSocketProgressPublisher) Publish(progressType string) error {
+	return publisher.Conn.WriteMessage(websocket.TextMessage, []byte(progressType))
+}
+
+type ProgressPublisher interface {
+	Publish(progressType string) error
+}
+
 type TransferClient struct {
-	Origin    provider.Provider
-	playlists []provider.Playlist
+	origin      provider.Provider
+	playlists   []provider.Playlist
+	publisher   ProgressPublisher
+	destination provider.Provider
 }
 
-func Transfer(provider provider.Provider, playlists []provider.Playlist) TransferClient {
-	return TransferClient{Origin: provider, playlists: playlists}
-}
+// func Transfer(provider provider.Provider, playlists []provider.Playlist) TransferClient {
+// 	return TransferClient{Origin: provider, playlists: playlists}
+// }
 
-func (t TransferClient) To(destination provider.Provider) error {
+func (t TransferClient) Start() error {
 
-	log.Printf("starting transfer from %s to %s", t.Origin.Name(), destination.Name())
+	log.Printf("starting transfer from %s to %s", t.origin.Name(), t.destination.Name())
 
 	if t.playlists == nil {
 		return errors.New("cannot import: list is null")
@@ -29,17 +80,17 @@ func (t TransferClient) To(destination provider.Provider) error {
 
 	log.Println("fetching playlists")
 	for _, playlist := range t.playlists {
-		destinationPlaylistId, err := getOrCreatePlaylist(destination, playlist)
+		destinationPlaylistId, err := getOrCreatePlaylist(t.destination, playlist)
 		if err != nil {
 			return err
 		}
 
-		log.Printf("fetching tracks on %s for playlist %s", t.Origin.Name(), playlist.Name)
-		fullPlaylist, err := t.Origin.GetFullPlaylist(string(playlist.ID))
+		log.Printf("fetching tracks on %s for playlist %s", t.origin.Name(), playlist.Name)
+		fullPlaylist, err := t.origin.GetFullPlaylist(string(playlist.ID))
 		if err != nil {
 			return err
 		}
-		err = destination.AddToPlaylist(destinationPlaylistId, fullPlaylist.Tracks)
+		err = t.destination.AddToPlaylist(destinationPlaylistId, fullPlaylist.Tracks)
 		if err != nil {
 			return err
 		}

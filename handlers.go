@@ -1,10 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"path/filepath"
 
@@ -13,7 +11,6 @@ import (
 	"github.com/paulombcosta/waltz/provider/spotify"
 	"github.com/paulombcosta/waltz/provider/youtube"
 	"github.com/paulombcosta/waltz/token"
-	"github.com/paulombcosta/waltz/transfer"
 	"golang.org/x/oauth2"
 )
 
@@ -54,38 +51,39 @@ type TransferPlaylist struct {
 }
 
 func (a application) transferHandler(w http.ResponseWriter, r *http.Request) {
-	var payload TransferPayload
-	err := json.NewDecoder(r.Body).Decode(&payload)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	if len(payload.Playlists) == 0 {
-		http.Error(w, "no playlists selected", http.StatusBadRequest)
-		return
-	}
 
-	origin, err := a.getProvider(PROVIDER_SPOTIFY, r, w)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	// var payload TransferPayload
+	// err := json.NewDecoder(r.Body).Decode(&payload)
+	// if err != nil {
+	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
+	// if len(payload.Playlists) == 0 {
+	// 	http.Error(w, "no playlists selected", http.StatusBadRequest)
+	// 	return
+	// }
 
-	destination, err := a.getProvider(PROVIDER_GOOGLE, r, w)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	// origin, err := a.getProvider(PROVIDER_SPOTIFY, r, w)
+	// if err != nil {
+	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
 
-	transferList := payload.ToProviderPlaylist()
-	log.Printf("starting to transfers playlists: %v", transferList)
+	// destination, err := a.getProvider(PROVIDER_GOOGLE, r, w)
+	// if err != nil {
+	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
 
-	err = transfer.Transfer(origin, transferList).To(destination)
-	if err != nil {
-		log.Println("top error, ", err.Error())
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	// transferList := payload.ToProviderPlaylist()
+	// log.Printf("starting to transfers playlists: %v", transferList)
+
+	// err = transfer.Transfer(origin, transferList).To(destination)
+	// if err != nil {
+	// 	log.Println("top error, ", err.Error())
+	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
 }
 
 func (a application) getProvider(name string, r *http.Request, w http.ResponseWriter) (provider.Provider, error) {

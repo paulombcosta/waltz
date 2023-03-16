@@ -15,9 +15,11 @@ func getMockProvider(t *testing.T) *provider.MockProvider {
 }
 
 func TestShouldReturnErrorIfPlaylistsAreNil(t *testing.T) {
-	origin := getMockProvider(t)
-	destination := getMockProvider(t)
-	err := Transfer(origin, nil).To(destination)
+	err := Transfer().
+		From(getMockProvider(t)).
+		To(getMockProvider(t)).
+		Build().
+		Start()
 	expectedMsg := "cannot import: list is null"
 	actual := err.Error()
 	if actual != expectedMsg {
@@ -26,9 +28,12 @@ func TestShouldReturnErrorIfPlaylistsAreNil(t *testing.T) {
 }
 
 func TestShouldReturnErrorIfPlaylistsAreEmpty(t *testing.T) {
-	origin := getMockProvider(t)
-	destination := getMockProvider(t)
-	err := Transfer(origin, []provider.Playlist{}).To(destination)
+	err := Transfer().
+		From(getMockProvider(t)).
+		To(getMockProvider(t)).
+		Playlists([]provider.Playlist{}).
+		Build().
+		Start()
 	expectedMsg := "cannot import: list is empty"
 	actual := err.Error()
 	if actual != expectedMsg {
@@ -82,5 +87,10 @@ func TestShouldUseOriginPlaylistIDWhenFetchingFullPlaylist(t *testing.T) {
 	destination.EXPECT().FindPlaylistByName("playlist").Return(provider.PlaylistID(destinationPlaylistID), nil).Once()
 	origin.EXPECT().GetFullPlaylist(originPlaylistID).Return(nil, errors.New("stop")).Once()
 
-	Transfer(origin, playlists).To(destination)
+	Transfer().
+		From(origin).
+		To(destination).
+		Playlists(playlists).
+		Build().
+		Start()
 }
