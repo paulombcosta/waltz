@@ -58,11 +58,11 @@
 }
 
 .activeYoutube {
-    color: red
+    filter: invert(12%) sepia(91%) saturate(4829%) hue-rotate(3deg) brightness(101%) contrast(138%);
 }
 
 .activeSpotify {
-    color: green
+    filter: invert(57%) sepia(97%) saturate(451%) hue-rotate(87deg) brightness(102%) contrast(79%);
 }
 
 .providerIcon {
@@ -90,6 +90,7 @@
 
 .loginRow p {
     font-size: 18px;
+    margin-top: 15px;
 }
 
 body {

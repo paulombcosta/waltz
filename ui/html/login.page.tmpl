@@ -11,7 +11,6 @@
     <div class="loginRow">
         {{ if .LoggedInSpotify }}
             <img src="/static/img/spotify.svg" alt="spotify icon" class="providerIcon activeSpotify"/>
-            <a href="/auth?provider=spotify"><button class="loginButton">Login</button></a>
             <p>Logged in</p>
         {{ else }}
             <img src="/static/img/spotify.svg" alt="spotify icon" class="providerIcon"/>
@@ -21,7 +20,6 @@
     <div class="spacing"></div>
     <div class="loginRow">
         {{ if .LoggedInYoutube }}
-            <img src="/static/img/youtube.svg" alt="youtube icon" class="providerIcon activeYoutube"/>
             <p>Logged in</p>
         {{ else }}
             <img src="/static/img/youtube.svg" alt="youtube icon" class="providerIcon"/>
