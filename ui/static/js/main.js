@@ -30,15 +30,31 @@ function setup() {
         toggleSubmitButton();
     })
     document.getElementById("submit").onclick = () => {
-        const selectedPlaylists = getSelectedPlaylists()
-        fetch("/transfer", {
-            method: "POST",
-            body: JSON.stringify({"playlists": selectedPlaylists})
-        })
+        // const selectedPlaylists = getSelectedPlaylists()
+        // fetch("/transfer", {
+        //     method: "POST",
+        //     body: JSON.stringify({"playlists": selectedPlaylists})
+        // })
+        testSocket()
     }
     document.getElementById("bulk").onchange = (event) => {
         toggleSelectAll(event.target.checked)
     }
+}
+
+function testSocket() {
+    console.log("test");
+    const socket = new WebSocket("ws://localhost:8080/transfer")
+    socket.addEventListener('open', (event) => {
+        // TODO start transfer
+        socket.send('Hello Server!');
+    });
+    
+    // Listen for messages
+    socket.addEventListener('message', (event) => {
+        // Listen to progress messages
+        console.log('Message from server ', event.data);
+    });
 }
 
 window.onload = setup

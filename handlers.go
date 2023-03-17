@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	"path/filepath"
 
+	"github.com/gorilla/websocket"
 	"github.com/markbates/goth/gothic"
 	"github.com/paulombcosta/waltz/provider"
 	"github.com/paulombcosta/waltz/provider/spotify"
@@ -50,7 +52,28 @@ type TransferPlaylist struct {
 	Name string `json:"name"`
 }
 
+var upgrader = websocket.Upgrader{}
+
 func (a application) transferHandler(w http.ResponseWriter, r *http.Request) {
+	c, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Print("upgrade:", err)
+		return
+	}
+	defer c.Close()
+	for {
+		mt, message, err := c.ReadMessage()
+		if err != nil {
+			log.Println("read:", err)
+			break
+		}
+		log.Printf("recv: %s", message)
+		err = c.WriteMessage(mt, message)
+		if err != nil {
+			log.Println("write:", err)
+			break
+		}
+	}
 
 	// var payload TransferPayload
 	// err := json.NewDecoder(r.Body).Decode(&payload)
