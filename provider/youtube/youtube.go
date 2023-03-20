@@ -169,60 +169,24 @@ func (y YoutubeProvider) GetFullPlaylist(id string) (*provider.FullPlaylist, err
 	return playlist, nil
 }
 
-func (y YoutubeProvider) AddToPlaylist(playlistId string, tracks []provider.Track) error {
+func (y YoutubeProvider) AddToPlaylist(playlistId string, trackId string) error {
 	client, err := y.getYoutubeClient()
 	if err != nil {
 		return nil
 	}
 
-	log.Println("getting full playlist on youtube")
-	currentPlaylist, err := y.GetFullPlaylist(playlistId)
+	item := &youtube.PlaylistItem{
+		Snippet: &youtube.PlaylistItemSnippet{
+			PlaylistId: playlistId,
+			ResourceId: &youtube.ResourceId{
+				Kind:    "youtube#video",
+				VideoId: string(trackId),
+			},
+		},
+	}
+	_, err = client.PlaylistItems.Insert([]string{"snippet"}, item).Do()
 	if err != nil {
 		return err
-	}
-	existingTracks := currentPlaylist.Tracks
-
-	for _, t := range tracks {
-
-		log.Println("searching for track: ", t.FullName())
-		trackId, err := y.FindTrack(t.FullName())
-		if err != nil {
-			return err
-		}
-
-		if trackId == "" {
-			log.Printf("track %s not found. Skipping", t.FullName())
-			continue
-		}
-
-		// See if playlist already has an item with the videoID
-		isDuplicate := false
-		for _, t := range existingTracks {
-			if trackId == provider.TrackID(t.ID) {
-				isDuplicate = true
-				break
-			}
-		}
-
-		if isDuplicate {
-			log.Printf("track %s is already present on playlist, skipping it", t.FullName())
-			continue
-		}
-
-		item := &youtube.PlaylistItem{
-			Snippet: &youtube.PlaylistItemSnippet{
-				PlaylistId: playlistId,
-				ResourceId: &youtube.ResourceId{
-					Kind:    "youtube#video",
-					VideoId: string(trackId),
-				},
-			},
-		}
-		_, err = client.PlaylistItems.Insert([]string{"snippet"}, item).Do()
-		if err != nil {
-			return err
-		}
-		log.Printf("successfully imported %s", item.Snippet.Title)
 	}
 	return nil
 }

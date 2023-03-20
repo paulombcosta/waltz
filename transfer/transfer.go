@@ -9,18 +9,12 @@ import (
 	"github.com/paulombcosta/waltz/provider"
 )
 
-// Transfer start
-// -> Send MSG: Started playlist X
-// -> Client knows the size so no need to send that.
-// -> Send: Track DONE:
-// -> Send Playlist DONE:
-// -> Send Transfer DONE:
-
 const (
 	PROGRESS_STARTED_PLAYLSIT = "playlist-start"
 	PROGRESS_PLAYLIST_DONE    = "playlist-done"
 	PROGRESS_TRACK_DONE       = "track-done"
-	TRANSFER_DONE             = "done"
+	PROGRESS_TRANSFER_DONE    = "done"
+	PROGRESS_TRANFER_ERROR    = "error"
 )
 
 type ProgressMessage struct {
@@ -85,7 +79,7 @@ func (publisher WebSocketProgressPublisher) Publish(progressType string, body st
 }
 
 type ProgressPublisher interface {
-	Publish(progressType string) error
+	Publish(progressType string, body string) error
 }
 
 type TransferClient struct {
@@ -93,6 +87,10 @@ type TransferClient struct {
 	playlists   []provider.Playlist
 	publisher   ProgressPublisher
 	destination provider.Provider
+}
+
+func (t TransferClient) publish(typeOf string, content string) {
+	t.publisher.Publish(typeOf, content)
 }
 
 func (t TransferClient) Start() error {
@@ -113,18 +111,62 @@ func (t TransferClient) Start() error {
 			return err
 		}
 
+		t.publish(PROGRESS_STARTED_PLAYLSIT, playlist.Name)
 		log.Printf("fetching tracks on %s for playlist %s", t.origin.Name(), playlist.Name)
 		fullPlaylist, err := t.origin.GetFullPlaylist(string(playlist.ID))
 		if err != nil {
 			return err
 		}
-		err = t.destination.AddToPlaylist(destinationPlaylistId, fullPlaylist.Tracks)
+		err = t.addTracksToPlaylist(t.destination, destinationPlaylistId, fullPlaylist.Tracks)
 		if err != nil {
 			return err
 		}
 		log.Printf("finished importing for %s\n", playlist.Name)
+		t.publish(PROGRESS_PLAYLIST_DONE, "")
 	}
+	t.publish(PROGRESS_TRANSFER_DONE, "")
 
+	return nil
+}
+
+func (client TransferClient) addTracksToPlaylist(provider provider.Provider, playlistId string, tracks []provider.Track) error {
+	log.Println("getting full playlist")
+	currentPlaylist, err := provider.GetFullPlaylist(playlistId)
+	if err != nil {
+		return err
+	}
+	existingTracks := currentPlaylist.Tracks
+
+	for _, t := range tracks {
+
+		log.Println("searching for track: ", t.FullName())
+		trackId, err := provider.FindTrack(t.FullName())
+		if err != nil {
+			return err
+		}
+
+		if trackId == "" {
+			log.Printf("track %s not found. Skipping", t.FullName())
+			continue
+		}
+
+		// See if playlist already has an item with the videoID
+		isDuplicate := false
+		for _, t := range existingTracks {
+			if string(trackId) == t.ID {
+				isDuplicate = true
+				break
+			}
+		}
+
+		if isDuplicate {
+			log.Printf("track %s is already present on playlist, skipping it", t.FullName())
+			continue
+		}
+
+		client.publish(PROGRESS_TRACK_DONE, "")
+		log.Printf("successfully imported %s", currentPlaylist.Name)
+	}
 	return nil
 }
 

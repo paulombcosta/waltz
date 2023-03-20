@@ -35,7 +35,7 @@ func (s SpotifyProvider) FindPlaylistByName(name string) (provider.PlaylistID, e
 	return "", errors.New("not implemented")
 }
 
-func (s SpotifyProvider) AddToPlaylist(playlistId string, tracks []provider.Track) error {
+func (s SpotifyProvider) AddToPlaylist(playlistId string, trackId string) error {
 	return errors.New("not implemented")
 }
 

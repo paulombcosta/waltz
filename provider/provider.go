@@ -25,7 +25,7 @@ type Provider interface {
 	FindPlaylistByName(name string) (PlaylistID, error)
 	FindPlayListById(id string) (*Playlist, error)
 	GetFullPlaylist(id string) (*FullPlaylist, error)
-	AddToPlaylist(playlistId string, tracks []Track) error
+	AddToPlaylist(playlistId string, trackId string) error
 }
 
 type FullPlaylist struct {
