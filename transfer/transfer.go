@@ -1,12 +1,32 @@
 package transfer
 
 import (
+	"encoding/json"
 	"errors"
 	"log"
 
 	"github.com/gorilla/websocket"
 	"github.com/paulombcosta/waltz/provider"
 )
+
+// Transfer start
+// -> Send MSG: Started playlist X
+// -> Client knows the size so no need to send that.
+// -> Send: Track DONE:
+// -> Send Playlist DONE:
+// -> Send Transfer DONE:
+
+const (
+	PROGRESS_STARTED_PLAYLSIT = "playlist-start"
+	PROGRESS_PLAYLIST_DONE    = "playlist-done"
+	PROGRESS_TRACK_DONE       = "track-done"
+	TRANSFER_DONE             = "done"
+)
+
+type ProgressMessage struct {
+	Type string `json:"type"`
+	Body string `json:"body"`
+}
 
 type TransferClientBuilder struct {
 	origin      provider.Provider
@@ -34,7 +54,7 @@ func (t TransferClientBuilder) To(destination provider.Provider) TransferClientB
 	return t
 }
 
-func (t TransferClientBuilder) WithProgressObserver(p ProgressPublisher) TransferClientBuilder {
+func (t TransferClientBuilder) WithProgressPublisher(p ProgressPublisher) TransferClientBuilder {
 	t.publisher = p
 	return t
 }
@@ -44,12 +64,24 @@ func (t TransferClientBuilder) Build() TransferClient {
 	return TransferClient(t)
 }
 
+func NewWebSocketProgressPublisher(conn *websocket.Conn) WebSocketProgressPublisher {
+	return WebSocketProgressPublisher{Conn: conn}
+}
+
 type WebSocketProgressPublisher struct {
 	Conn *websocket.Conn
 }
 
-func (publisher WebSocketProgressPublisher) Publish(progressType string) error {
-	return publisher.Conn.WriteMessage(websocket.TextMessage, []byte(progressType))
+func (publisher WebSocketProgressPublisher) Publish(progressType string, body string) error {
+	payload := ProgressMessage{
+		Type: progressType,
+		Body: body,
+	}
+	data, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+	return publisher.Conn.WriteMessage(websocket.TextMessage, data)
 }
 
 type ProgressPublisher interface {
@@ -62,10 +94,6 @@ type TransferClient struct {
 	publisher   ProgressPublisher
 	destination provider.Provider
 }
-
-// func Transfer(provider provider.Provider, playlists []provider.Playlist) TransferClient {
-// 	return TransferClient{Origin: provider, playlists: playlists}
-// }
 
 func (t TransferClient) Start() error {
 

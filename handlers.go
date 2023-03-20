@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
@@ -13,6 +14,7 @@ import (
 	"github.com/paulombcosta/waltz/provider/spotify"
 	"github.com/paulombcosta/waltz/provider/youtube"
 	"github.com/paulombcosta/waltz/token"
+	"github.com/paulombcosta/waltz/transfer"
 	"golang.org/x/oauth2"
 )
 
@@ -62,51 +64,59 @@ func (a application) transferHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer c.Close()
 	for {
-		mt, message, err := c.ReadMessage()
+		_, message, err := c.ReadMessage()
 		if err != nil {
 			log.Println("read:", err)
 			break
 		}
-		log.Printf("recv: %s", message)
-		err = c.WriteMessage(mt, message)
+		payload, err := parseMessage(message)
 		if err != nil {
-			log.Println("write:", err)
+			// TODO send this as a error message to the client
+			log.Println("failed to parse transfer message: ", err)
+			break
+		}
+		log.Println("transferPayload received: ", payload)
+		if len(payload.Playlists) == 0 {
+			// TODO send this as a error message to the client
+			log.Println("failed to parse transfer message: ", err)
+			break
+		}
+		origin, err := a.getProvider(PROVIDER_SPOTIFY, r, w)
+		if err != nil {
+			// TODO send this as a error message to the client
+			log.Println("failed to parse transfer message: ", err)
+			break
+		}
+
+		destination, err := a.getProvider(PROVIDER_GOOGLE, r, w)
+		if err != nil {
+			// TODO send this as a error message to the client
+			log.Println("failed to parse transfer message: ", err)
+			break
+		}
+
+		err = transfer.Transfer().
+			Playlists(payload.ToProviderPlaylist()).
+			From(origin).
+			To(destination).
+			WithProgressPublisher(transfer.NewWebSocketProgressPublisher(c)).
+			Build().Start()
+
+		if err != nil {
+			// TODO send this as a error message to the client
+			log.Println("failed to parse transfer message: ", err)
 			break
 		}
 	}
+}
 
-	// var payload TransferPayload
-	// err := json.NewDecoder(r.Body).Decode(&payload)
-	// if err != nil {
-	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
-	// 	return
-	// }
-	// if len(payload.Playlists) == 0 {
-	// 	http.Error(w, "no playlists selected", http.StatusBadRequest)
-	// 	return
-	// }
-
-	// origin, err := a.getProvider(PROVIDER_SPOTIFY, r, w)
-	// if err != nil {
-	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
-	// 	return
-	// }
-
-	// destination, err := a.getProvider(PROVIDER_GOOGLE, r, w)
-	// if err != nil {
-	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
-	// 	return
-	// }
-
-	// transferList := payload.ToProviderPlaylist()
-	// log.Printf("starting to transfers playlists: %v", transferList)
-
-	// err = transfer.Transfer(origin, transferList).To(destination)
-	// if err != nil {
-	// 	log.Println("top error, ", err.Error())
-	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
-	// 	return
-	// }
+func parseMessage(payload []byte) (*TransferPayload, error) {
+	var data TransferPayload
+	err := json.Unmarshal(payload, &data)
+	if err != nil {
+		return nil, err
+	}
+	return &data, err
 }
 
 func (a application) getProvider(name string, r *http.Request, w http.ResponseWriter) (provider.Provider, error) {
