@@ -129,3 +129,22 @@ body {
     border: 1px solid #ddd;
     padding: 8px;
 }
+
+.progressContainer {
+    display: flex;
+    flex-direction: column;
+}
+
+.progressContainer p {
+    font-size: 18px;
+}
+
+.progressTitle {
+    font-size: 24px;
+}
+
+.currentPlaylist {}
+
+.playlistProgressCount {}
+
+.trackProgressCount {}

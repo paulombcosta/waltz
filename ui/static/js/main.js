@@ -30,7 +30,8 @@ function setup() {
         toggleSubmitButton();
     })
     document.getElementById("submit").onclick = () => {
-        startTransfer()
+        // startTransfer()
+        setupProgress();
     }
     document.getElementById("bulk").onchange = (event) => {
         toggleSelectAll(event.target.checked)
@@ -48,6 +49,35 @@ function startTransfer() {
         // TODO Listen to progress messages
         console.log('Message from server ', event.data);
     });
+}
+
+function setupProgress(playlists) {
+    progressContainer = document.createElement("div");
+    progressContainer.classList.add("progressContainer")
+
+    title = document.createElement("p");
+    title.classList.add("progressTitle")
+    title.textContent = "Transfer in Progress"
+
+    currentPlaylist = document.createElement("p");
+    currentPlaylist.classList.add("currentPlaylist");
+    currentPlaylist.textContent = "-";
+
+    playlistProgressCount = document.createElement("p")
+    playlistProgressCount.classList.add("playlistProgressCount")
+    // TODO get total count from selected playlists
+
+    trackProgressCount = document.createElement("p")
+    trackProgressCount.classList.add("trackProgressCount")
+    // TODO get total count from selected playlists
+
+    progressContainer.appendChild(title);
+    progressContainer.appendChild(currentPlaylist);
+    progressContainer.appendChild(playlistProgressCount);
+    progressContainer.appendChild(trackProgressCount);
+
+    document.getElementsByTagName("body")[0].innerHTML = progressContainer;
+
 }
 
 window.onload = setup
