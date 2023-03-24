@@ -1,10 +1,13 @@
 function getSelectedPlaylists() {
     return $("#table input[type=checkbox]:checked").map(function() {
-        const name = document.getElementById(this.id)
+        const table = document.getElementById(this.id)
             .parentElement
             .parentElement
+        const name = table
             .getElementsByClassName("name")[0].textContent;
-        return {id: this.id, name: name};
+        const totalTracks = table
+            .getElementsByClassName("totalTracks")[0].textContent;
+        return {id: this.id, name: name, totalTracks: totalTracks};
     }).get();
 }
 
@@ -31,7 +34,8 @@ function setup() {
     })
     document.getElementById("submit").onclick = () => {
         // startTransfer()
-        setupProgress();
+        const playlists = getSelectedPlaylists()
+        setupProgress(playlists);
     }
     document.getElementById("bulk").onchange = (event) => {
         toggleSelectAll(event.target.checked)
@@ -51,7 +55,13 @@ function startTransfer() {
     });
 }
 
+function getTotalOfTracks(playlists) {
+    return playlists.map(p => parseInt(p.totalTracks));
+}
+
 function setupProgress(playlists) {
+    console.log(playlists);
+
     progressContainer = document.createElement("div");
     progressContainer.classList.add("progressContainer")
 
@@ -61,23 +71,22 @@ function setupProgress(playlists) {
 
     currentPlaylist = document.createElement("p");
     currentPlaylist.classList.add("currentPlaylist");
-    currentPlaylist.textContent = "-";
+    currentPlaylist.textContent = "Transfering Playlist: -";
 
     playlistProgressCount = document.createElement("p")
     playlistProgressCount.classList.add("playlistProgressCount")
-    // TODO get total count from selected playlists
+    playlistProgressCount.textContent = `Playlists Transferred: 0 of ${playlists.length}`
 
     trackProgressCount = document.createElement("p")
     trackProgressCount.classList.add("trackProgressCount")
-    // TODO get total count from selected playlists
+    trackProgressCount.textContent = `Tracks Transferred: 0 of ${getTotalOfTracks(playlists)}`
 
     progressContainer.appendChild(title);
     progressContainer.appendChild(currentPlaylist);
     progressContainer.appendChild(playlistProgressCount);
     progressContainer.appendChild(trackProgressCount);
 
-    document.getElementsByTagName("body")[0].innerHTML = progressContainer;
-
+    document.getElementsByTagName("body")[0].replaceChildren(progressContainer)
 }
 
 window.onload = setup
