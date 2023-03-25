@@ -3,7 +3,6 @@ package transfer
 import (
 	"encoding/json"
 	"errors"
-	"log"
 
 	"github.com/gorilla/websocket"
 	"github.com/paulombcosta/waltz/provider"
@@ -99,8 +98,6 @@ func (t TransferClient) publish(typeOf string, content string) {
 
 func (t TransferClient) Start() error {
 
-	log.Printf("starting transfer from %s to %s", t.origin.Name(), t.destination.Name())
-
 	if t.playlists == nil {
 		return errors.New("cannot import: list is null")
 	}
@@ -108,7 +105,6 @@ func (t TransferClient) Start() error {
 		return errors.New("cannot import: list is empty")
 	}
 
-	log.Println("fetching playlists")
 	for _, playlist := range t.playlists {
 		destinationPlaylistId, err := getOrCreatePlaylist(t.destination, playlist)
 		if err != nil {
@@ -116,7 +112,6 @@ func (t TransferClient) Start() error {
 		}
 
 		t.publish(PROGRESS_STARTED_PLAYLSIT, playlist.Name)
-		log.Printf("fetching tracks on %s for playlist %s", t.origin.Name(), playlist.Name)
 		fullPlaylist, err := t.origin.GetFullPlaylist(string(playlist.ID))
 		if err != nil {
 			return err
@@ -125,7 +120,6 @@ func (t TransferClient) Start() error {
 		if err != nil {
 			return err
 		}
-		log.Printf("finished importing for %s\n", playlist.Name)
 		t.publish(PROGRESS_PLAYLIST_DONE, "")
 	}
 	t.publish(PROGRESS_TRANSFER_DONE, "")
@@ -134,7 +128,6 @@ func (t TransferClient) Start() error {
 }
 
 func (client TransferClient) addTracksToPlaylist(provider provider.Provider, playlistId string, tracks []provider.Track) error {
-	log.Println("getting full playlist")
 	currentPlaylist, err := provider.GetFullPlaylist(playlistId)
 	if err != nil {
 		return err
@@ -143,14 +136,12 @@ func (client TransferClient) addTracksToPlaylist(provider provider.Provider, pla
 
 	for _, t := range tracks {
 
-		log.Println("searching for track: ", t.FullName())
 		trackId, err := provider.FindTrack(t.FullName())
 		if err != nil {
 			return err
 		}
 
 		if trackId == "" {
-			log.Printf("track %s not found. Skipping", t.FullName())
 			continue
 		}
 
@@ -164,12 +155,10 @@ func (client TransferClient) addTracksToPlaylist(provider provider.Provider, pla
 		}
 
 		if isDuplicate {
-			log.Printf("track %s is already present on playlist, skipping it", t.FullName())
 			continue
 		}
 
 		client.publish(PROGRESS_TRACK_DONE, "")
-		log.Printf("successfully imported %s", currentPlaylist.Name)
 	}
 	return nil
 }
@@ -181,15 +170,12 @@ func getOrCreatePlaylist(destination provider.Provider, playlist provider.Playli
 		return "", err
 	}
 	if id == "" {
-		log.Printf("playlist %s not found, creating a new one", playlist.Name)
 		id, err = destination.CreatePlaylist(playlist.Name)
 		if err != nil {
 			return "", err
 		}
-		log.Println("playlist created with id ", id)
 		destinationPlaylist = string(id)
 	} else {
-		log.Printf("playlist %s already exists", playlist.Name)
 		destinationPlaylist = string(id)
 	}
 	return destinationPlaylist, nil

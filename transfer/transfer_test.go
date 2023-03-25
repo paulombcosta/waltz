@@ -2,7 +2,6 @@ package transfer
 
 import (
 	"errors"
-	"log"
 	"testing"
 
 	"github.com/paulombcosta/waltz/provider"
@@ -16,7 +15,6 @@ func (p NoOpPublisher) Publish(progressType string, body string) error {
 
 func getMockProvider(t *testing.T) *provider.MockProvider {
 	p := provider.NewMockProvider(t)
-	p.EXPECT().Name().Return("Test")
 	return p
 }
 
@@ -57,7 +55,7 @@ func TestShouldUseExistingPlaylistOnDestination(t *testing.T) {
 	id, _ := getOrCreatePlaylist(destination, destinationPlaylist)
 
 	if id != "123" {
-		log.Fatalf("expected id to be 123 but it is %s", id)
+		t.Fatalf("expected id to be 123 but it is %s", id)
 	}
 }
 
@@ -72,7 +70,7 @@ func TestShouldCreatePlaylistWhenOriginDoesntExist(t *testing.T) {
 	id, _ := getOrCreatePlaylist(destination, destinationPlaylist)
 
 	if id != "123" {
-		log.Fatalf("expected id to be 123 but it is %s", id)
+		t.Fatalf("expected id to be 123 but it is %s", id)
 	}
 }
 

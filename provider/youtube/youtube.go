@@ -3,7 +3,6 @@ package youtube
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/paulombcosta/waltz/provider"
 	"golang.org/x/oauth2"
@@ -39,9 +38,6 @@ func New(tokenProvider provider.TokenProvider) *YoutubeProvider {
 // maybe move to sessions, looks more like it
 func (y YoutubeProvider) IsLoggedIn() bool {
 	_, err := y.tokenProvider.RefreshToken()
-	if err != nil {
-		log.Println("youtube login error, : ", err.Error())
-	}
 	return err == nil
 }
 

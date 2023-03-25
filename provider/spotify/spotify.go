@@ -3,8 +3,6 @@ package spotify
 import (
 	"context"
 	"errors"
-	"log"
-
 	"github.com/paulombcosta/waltz/provider"
 	"github.com/zmb3/spotify/v2"
 	spotifyauth "github.com/zmb3/spotify/v2/auth"
@@ -49,7 +47,6 @@ func (s SpotifyProvider) GetFullPlaylist(id string) (*provider.FullPlaylist, err
 		return nil, err
 	}
 	trackPage := fullPlaylist.Tracks
-	log.Println("number of tracks: ", trackPage.Total)
 	tracks := []provider.Track{}
 	for _, t := range trackPage.Tracks {
 		artists := []string{}
