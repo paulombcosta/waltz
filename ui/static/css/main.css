@@ -148,3 +148,15 @@ body {
 .playlistProgressCount {}
 
 .trackProgressCount {}
+
+.progressEndText {
+    text-align: center;
+}
+
+.enabled {
+    display: inline-block
+}
+
+.disabled {
+    display: none;
+}

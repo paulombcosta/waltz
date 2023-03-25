@@ -57,12 +57,7 @@ function startTransfer(playlists) {
     });
 }
 
-//Message from server  {"type":"playlist-start","body":"LilBitOfFeelGood"}
-//2main.js:55 Message from server  {"type":"track-done","body":""}
-//main.js:55 Message from server  {"type":"playlist-done","body":""}
-//main.js:55 Message from server  {"type":"done","body":""}
 function handleMessage(msg) {
-    console.log("message.type: ", msg.type);
     switch (msg.type) {
         case "playlist-start":
             updatePlaylistName(msg.body)
@@ -74,9 +69,10 @@ function handleMessage(msg) {
             increasePlaylistProgress()
             break;
         case "done":
-            console.log("transfer done")
+            updateProgressEndText("Finished")
             break;
         default:
+            updateProgressEndText(`invalid message received from`)
             break;
     }
 }
@@ -99,6 +95,13 @@ function updatePlaylistName(name) {
 
 function getTotalOfTracks(playlists) {
     return playlists.map(p => parseInt(p.totalTracks));
+}
+
+function updateProgressEndText(text) {
+    const el = document.getElementById("progressEndText")
+    el.innerText = text
+    el.classList.remove("disabled")
+    el.classList.add("enabled")
 }
 
 function setupProgress(playlists) {
@@ -127,10 +130,16 @@ function setupProgress(playlists) {
     window.totalTracks = totalTracks;
     trackProgressCount.textContent = `Tracks Transferred: 0 of ${totalTracks}`
 
+    progressEndText = document.createElement("p");
+    progressEndText.classList.add("progressEndText");
+    progressEndText.classList.add("disabled");
+    progressEndText.id = "progressEndText";
+
     progressContainer.appendChild(title);
     progressContainer.appendChild(currentPlaylist);
     progressContainer.appendChild(playlistProgressCount);
     progressContainer.appendChild(trackProgressCount);
+    progressContainer.appendChild(progressEndText);
 
     document.getElementsByTagName("body")[0].replaceChildren(progressContainer)
 }
