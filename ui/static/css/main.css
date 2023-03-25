@@ -135,22 +135,24 @@ body {
     flex-direction: column;
 }
 
-.progressContainer p {
-    font-size: 18px;
+.progressContainer {
+    text-align: center;
 }
 
 .progressTitle {
     font-size: 24px;
+    font-weight: bold;
 }
 
-.currentPlaylist {}
-
-.playlistProgressCount {}
-
-.trackProgressCount {}
+.currentPlaylist {
+    margin-top: 10px;
+}
 
 .progressEndText {
+    margin-top: 10px;
     text-align: center;
+    font-size: 24px;
+    font-weight: bold;
 }
 
 .enabled {

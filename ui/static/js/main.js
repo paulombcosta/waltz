@@ -1,3 +1,5 @@
+let socket = undefined;
+
 function getSelectedPlaylists() {
     return $("#table input[type=checkbox]:checked").map(function() {
         const table = document.getElementById(this.id)
@@ -35,15 +37,21 @@ function setup() {
     document.getElementById("submit").onclick = () => {
         const playlists = getSelectedPlaylists()
         setupProgress(playlists);
-        startTransfer(playlists)
+        startTransfer(playlists);
     }
     document.getElementById("bulk").onchange = (event) => {
         toggleSelectAll(event.target.checked)
     }
 }
 
+function stopSocket() {
+    if (socket !== undefined) {
+        socket.close();
+    }
+}
+
 function startTransfer(playlists) {
-    const socket = new WebSocket("ws://localhost:8080/transfer")
+    socket = new WebSocket("ws://localhost:8080/transfer")
     const payload = playlists.map(x => {
         return {"id": x.id, "name": x.name}
     })
@@ -70,9 +78,13 @@ function handleMessage(msg) {
             break;
         case "done":
             updateProgressEndText("Finished")
+            stopSocket()
+            break;
+        case "error":
+            updateProgressEndText(`error: ${msg.body}`)
             break;
         default:
-            updateProgressEndText(`invalid message received from`)
+            updateProgressEndText(`invalid message received from server: ${msg.type}`)
             break;
     }
 }
@@ -90,7 +102,7 @@ function increasePlaylistProgress() {
 }
 
 function updatePlaylistName(name) {
-    document.getElementById("currentPlaylist").innerText = `"Transfering Playlist: ${name}"`;
+    document.getElementById("currentPlaylist").innerText = `Transfering Playlist: ${name}`;
 }
 
 function getTotalOfTracks(playlists) {
@@ -102,6 +114,7 @@ function updateProgressEndText(text) {
     el.innerText = text
     el.classList.remove("disabled")
     el.classList.add("enabled")
+    stopSocket();
 }
 
 function setupProgress(playlists) {
