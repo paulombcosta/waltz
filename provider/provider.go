@@ -23,7 +23,6 @@ type Provider interface {
 	CreatePlaylist(name string) (PlaylistID, error)
 	FindTrack(name string) (TrackID, error)
 	FindPlaylistByName(name string) (PlaylistID, error)
-	FindPlayListById(id string) (*Playlist, error)
 	GetFullPlaylist(id string) (*FullPlaylist, error)
 	AddToPlaylist(playlistId string, trackId string) error
 }

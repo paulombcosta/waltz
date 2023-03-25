@@ -3,6 +3,7 @@ package spotify
 import (
 	"context"
 	"errors"
+
 	"github.com/paulombcosta/waltz/provider"
 	"github.com/zmb3/spotify/v2"
 	spotifyauth "github.com/zmb3/spotify/v2/auth"
@@ -60,21 +61,6 @@ func (s SpotifyProvider) GetFullPlaylist(id string) (*provider.FullPlaylist, err
 	}
 	return &provider.FullPlaylist{
 		Tracks: tracks,
-	}, nil
-}
-
-func (s SpotifyProvider) FindPlayListById(id string) (*provider.Playlist, error) {
-	client, err := s.getSpotifyClient()
-	if err != nil {
-		return nil, err
-	}
-	p, err := client.GetPlaylist(context.Background(), spotify.ID(id))
-	if err != nil {
-		return nil, err
-	}
-	return &provider.Playlist{
-		ID:   provider.PlaylistID(p.ID.String()),
-		Name: p.Name,
 	}, nil
 }
 

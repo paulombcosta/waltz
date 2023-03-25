@@ -69,21 +69,6 @@ func (y YoutubeProvider) FindPlaylistByName(name string) (provider.PlaylistID, e
 	return "", nil
 }
 
-func (y YoutubeProvider) FindPlayListById(id string) (*provider.Playlist, error) {
-	client, err := y.getYoutubeClient()
-	if err != nil {
-		return nil, err
-	}
-	playlist, err := client.Playlists.List([]string{"snippet"}).Id(id).Do()
-	if err != nil {
-		return nil, err
-	}
-	return &provider.Playlist{
-		ID:   provider.PlaylistID(playlist.Items[0].Id),
-		Name: playlist.Items[0].Snippet.Title,
-	}, nil
-}
-
 func (y YoutubeProvider) CreatePlaylist(name string) (provider.PlaylistID, error) {
 	client, err := y.getYoutubeClient()
 	if err != nil {
