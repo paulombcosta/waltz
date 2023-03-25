@@ -158,7 +158,10 @@ func (client TransferClient) addTracksToPlaylist(provider provider.Provider, pla
 			continue
 		}
 
-		provider.AddToPlaylist(playlistId, string(trackId))
+		err = provider.AddToPlaylist(playlistId, string(trackId))
+		if err != nil {
+			return err
+		}
 
 		client.publish(PROGRESS_TRACK_DONE, "")
 	}
