@@ -158,6 +158,8 @@ func (client TransferClient) addTracksToPlaylist(provider provider.Provider, pla
 			continue
 		}
 
+		provider.AddToPlaylist(playlistId, string(trackId))
+
 		client.publish(PROGRESS_TRACK_DONE, "")
 	}
 	return nil
