@@ -8,6 +8,12 @@ import (
 	"github.com/paulombcosta/waltz/provider"
 )
 
+type NoOpPublisher struct{}
+
+func (p NoOpPublisher) Publish(progressType string, body string) error {
+	return nil
+}
+
 func getMockProvider(t *testing.T) *provider.MockProvider {
 	p := provider.NewMockProvider(t)
 	p.EXPECT().Name().Return("Test")
@@ -91,6 +97,7 @@ func TestShouldUseOriginPlaylistIDWhenFetchingFullPlaylist(t *testing.T) {
 		From(origin).
 		To(destination).
 		Playlists(playlists).
+		WithProgressPublisher(NoOpPublisher{}).
 		Build().
 		Start()
 }
