@@ -63,35 +63,31 @@ func (a application) transferHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer c.Close()
+	publisher := transfer.NewWebSocketProgressPublisher(c)
 	for {
 		_, message, err := c.ReadMessage()
 		if err != nil {
-			log.Println("read:", err)
+			publisher.Error(err.Error())
 			break
 		}
 		payload, err := parseMessage(message)
 		if err != nil {
-			// TODO send this as a error message to the client
-			log.Println("failed to parse transfer message: ", err)
+			publisher.Error(err.Error())
 			break
 		}
-		log.Println("transferPayload received: ", payload)
 		if len(payload.Playlists) == 0 {
-			// TODO send this as a error message to the client
-			log.Println("failed to parse transfer message: ", err)
+			publisher.Error("failure: no playlists selected")
 			break
 		}
 		origin, err := a.getProvider(PROVIDER_SPOTIFY, r, w)
 		if err != nil {
-			// TODO send this as a error message to the client
-			log.Println("failed to parse transfer message: ", err)
+			publisher.Error(err.Error())
 			break
 		}
 
 		destination, err := a.getProvider(PROVIDER_GOOGLE, r, w)
 		if err != nil {
-			// TODO send this as a error message to the client
-			log.Println("failed to parse transfer message: ", err)
+			publisher.Error(err.Error())
 			break
 		}
 
@@ -99,12 +95,11 @@ func (a application) transferHandler(w http.ResponseWriter, r *http.Request) {
 			Playlists(payload.ToProviderPlaylist()).
 			From(origin).
 			To(destination).
-			WithProgressPublisher(transfer.NewWebSocketProgressPublisher(c)).
+			WithProgressPublisher(publisher).
 			Build().Start()
 
 		if err != nil {
-			// TODO send this as a error message to the client
-			log.Println("failed to parse transfer message: ", err)
+			publisher.Error(err.Error())
 			break
 		}
 	}

@@ -78,6 +78,10 @@ func (publisher WebSocketProgressPublisher) Publish(progressType string, body st
 	return publisher.Conn.WriteMessage(websocket.TextMessage, data)
 }
 
+func (publisher WebSocketProgressPublisher) Error(body string) error {
+	return publisher.Publish(PROGRESS_TRANFER_ERROR, body)
+}
+
 type ProgressPublisher interface {
 	Publish(progressType string, body string) error
 }
