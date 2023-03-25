@@ -1,7 +1,6 @@
 package session
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -73,7 +72,7 @@ func (s SessionManager) UpdateTokens(provider string, tokens *oauth2.Token, r *h
 	} else if provider == "google" {
 		session.Values[GOOGLE_USER_TOKEN_SESSION_KEY] = tokens
 	} else {
-		return errors.New(fmt.Sprintf("invalid provider %s", provider))
+		return fmt.Errorf("invalid provider %s", provider)
 	}
 	return session.Save(r, w)
 }

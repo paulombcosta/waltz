@@ -78,8 +78,8 @@ func (publisher WebSocketProgressPublisher) Publish(progressType string, body st
 	return publisher.Conn.WriteMessage(websocket.TextMessage, data)
 }
 
-func (publisher WebSocketProgressPublisher) Error(body string) error {
-	return publisher.Publish(PROGRESS_TRANFER_ERROR, body)
+func (publisher WebSocketProgressPublisher) Error(body string) {
+	_ = publisher.Publish(PROGRESS_TRANFER_ERROR, body)
 }
 
 type ProgressPublisher interface {
@@ -94,7 +94,7 @@ type TransferClient struct {
 }
 
 func (t TransferClient) publish(typeOf string, content string) {
-	t.publisher.Publish(typeOf, content)
+	_ = t.publisher.Publish(typeOf, content)
 }
 
 func (t TransferClient) Start() error {

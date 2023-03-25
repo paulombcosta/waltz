@@ -152,7 +152,7 @@ func (a application) homepageHandler(w http.ResponseWriter, r *http.Request) {
 
 	if pageState.LoggedInSpotify && pageState.LoggedInYoutube {
 		playlists, err := spotifyProvider.GetPlaylists()
-		content := PlaylistsContent{}
+		var content PlaylistsContent
 		if err != nil {
 			content = PlaylistsContent{
 				Playlists: []provider.Playlist{},

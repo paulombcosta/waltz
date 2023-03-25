@@ -93,7 +93,7 @@ func TestShouldUseOriginPlaylistIDWhenFetchingFullPlaylist(t *testing.T) {
 	destination.EXPECT().FindPlaylistByName("playlist").Return(provider.PlaylistID(destinationPlaylistID), nil).Once()
 	origin.EXPECT().GetFullPlaylist(originPlaylistID).Return(nil, errors.New("stop")).Once()
 
-	Transfer().
+	_ = Transfer().
 		From(origin).
 		To(destination).
 		Playlists(playlists).
