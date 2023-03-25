@@ -69,12 +69,13 @@ function handleMessage(msg) {
             increaseTrackProgress()
             break;
         case "playlist-done":
-            console.log("Hai")
+            increasePlaylistProgress()
             break;
         case "done":
-            console.log("Hai")
+            console.log("transfer done")
             break;
         default:
+            // Handle error here
             console.log("TODO")
     }
 }
@@ -83,6 +84,12 @@ function increaseTrackProgress() {
     const el = document.getElementById("trackProgressCount");
     const currentCount = parseInt(el.innerText.split(" ")[2]);
     el.innerText = `Tracks Transferred: ${currentCount + 1} of ${window.totalTracks}`;
+}
+
+function increasePlaylistProgress() {
+    const el = document.getElementById("playlistProgressCount");
+    const currentCount = parseInt(el.innerText.split(" ")[2]);
+    el.innerText = `Playlists Transferred: ${currentCount + 1} of ${window.playlistsTotal}`
 }
 
 function updatePlaylistName(name) {
@@ -109,6 +116,7 @@ function setupProgress(playlists) {
     playlistProgressCount = document.createElement("p")
     playlistProgressCount.classList.add("playlistProgressCount")
     playlistProgressCount.id = "playlistProgressCount"
+    window.playlistsTotal = playlists.length
     playlistProgressCount.textContent = `Playlists Transferred: 0 of ${playlists.length}`
 
     trackProgressCount = document.createElement("p")
