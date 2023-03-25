@@ -1,3 +1,4 @@
 waltz
 **/mocks
 mock_**.go
+.DS_Store
