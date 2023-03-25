@@ -33,26 +33,60 @@ function setup() {
         toggleSubmitButton();
     })
     document.getElementById("submit").onclick = () => {
-        // startTransfer()
         const playlists = getSelectedPlaylists()
         setupProgress(playlists);
+        startTransfer(playlists)
     }
     document.getElementById("bulk").onchange = (event) => {
         toggleSelectAll(event.target.checked)
     }
 }
 
-function startTransfer() {
+function startTransfer(playlists) {
     const socket = new WebSocket("ws://localhost:8080/transfer")
-    const playlists = getSelectedPlaylists();
+    const payload = playlists.map(x => {
+        return {"id": x.id, "name": x.name}
+    })
     socket.addEventListener('open', (event) => {
-        socket.send(JSON.stringify({"playlists": playlists}));
+        socket.send(JSON.stringify({"playlists": payload}));
     });
     
     socket.addEventListener('message', (event) => {
-        // TODO Listen to progress messages
         console.log('Message from server ', event.data);
     });
+}
+
+//Message from server  {"type":"playlist-start","body":"LilBitOfFeelGood"}
+//2main.js:55 Message from server  {"type":"track-done","body":""}
+//main.js:55 Message from server  {"type":"playlist-done","body":""}
+//main.js:55 Message from server  {"type":"done","body":""}
+function handleMessage(msg) {
+    switch (msg.type) {
+        case "playlist-start":
+            updatePlaylistName(msg.body)
+            break;
+        case "track-done":
+            increaseTrackProgress()
+            break;
+        case "playlist-done":
+            console.log("Hai")
+            break;
+        case "done":
+            console.log("Hai")
+            break;
+        default:
+            console.log("TODO")
+    }
+}
+
+function increaseTrackProgress() {
+    const el = document.getElementById("trackProgressCount");
+    const currentCount = parseInt(el.innerText.split(" ")[2]);
+    el.innerText = `Tracks Transferred: ${currentCount + 1} of ${window.totalTracks}`;
+}
+
+function updatePlaylistName(name) {
+    document.getElementById("currentPlaylist").innerText = name;
 }
 
 function getTotalOfTracks(playlists) {
@@ -60,8 +94,6 @@ function getTotalOfTracks(playlists) {
 }
 
 function setupProgress(playlists) {
-    console.log(playlists);
-
     progressContainer = document.createElement("div");
     progressContainer.classList.add("progressContainer")
 
@@ -71,15 +103,20 @@ function setupProgress(playlists) {
 
     currentPlaylist = document.createElement("p");
     currentPlaylist.classList.add("currentPlaylist");
+    currentPlaylist.id = "currentPlaylist"
     currentPlaylist.textContent = "Transfering Playlist: -";
 
     playlistProgressCount = document.createElement("p")
     playlistProgressCount.classList.add("playlistProgressCount")
+    playlistProgressCount.id = "playlistProgressCount"
     playlistProgressCount.textContent = `Playlists Transferred: 0 of ${playlists.length}`
 
     trackProgressCount = document.createElement("p")
     trackProgressCount.classList.add("trackProgressCount")
-    trackProgressCount.textContent = `Tracks Transferred: 0 of ${getTotalOfTracks(playlists)}`
+    trackProgressCount.id = "trackProgressCount"
+    const totalTracks = getTotalOfTracks(playlists);
+    window.totalTracks = totalTracks;
+    trackProgressCount.textContent = `Tracks Transferred: 0 of ${totalTracks}`
 
     progressContainer.appendChild(title);
     progressContainer.appendChild(currentPlaylist);

@@ -22,6 +22,7 @@ type application struct {
 }
 
 func main() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	goth.UseProviders(
 		google.New(
 			os.Getenv("GOOGLE_CLIENT_ID"),
