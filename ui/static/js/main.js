@@ -52,7 +52,8 @@ function startTransfer(playlists) {
     });
     
     socket.addEventListener('message', (event) => {
-        console.log('Message from server ', event.data);
+        data = JSON.parse(event.data);
+        handleMessage(data);
     });
 }
 
@@ -61,6 +62,7 @@ function startTransfer(playlists) {
 //main.js:55 Message from server  {"type":"playlist-done","body":""}
 //main.js:55 Message from server  {"type":"done","body":""}
 function handleMessage(msg) {
+    console.log("message.type: ", msg.type);
     switch (msg.type) {
         case "playlist-start":
             updatePlaylistName(msg.body)
@@ -75,8 +77,7 @@ function handleMessage(msg) {
             console.log("transfer done")
             break;
         default:
-            // Handle error here
-            console.log("TODO")
+            break;
     }
 }
 
@@ -93,7 +94,7 @@ function increasePlaylistProgress() {
 }
 
 function updatePlaylistName(name) {
-    document.getElementById("currentPlaylist").innerText = name;
+    document.getElementById("currentPlaylist").innerText = `"Transfering Playlist: ${name}"`;
 }
 
 function getTotalOfTracks(playlists) {
