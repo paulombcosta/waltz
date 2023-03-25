@@ -2,18 +2,6 @@ module github.com/paulombcosta/waltz
 
 go 1.20
 
-replace github.com/paulombcosta/waltz/session => ./session
-
-replace github.com/paulombcosta/waltz/provider => ./provider
-
-replace github.com/paulombcosta/waltz/provider/youtube => ./provider/youtube
-
-replace github.com/paulombcosta/waltz/provider/spotify => ./provider/spotify
-
-replace github.com/paulombcosta/waltz/token => ./token
-
-replace github.com/paulombcosta/waltz/transfer => ./transfer
-
 require (
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/gorilla/sessions v1.2.1
