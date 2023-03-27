@@ -21,6 +21,8 @@ sure the urls are these: ![google-1](./img/google-1.png)
 Under `API & Allowed Services` add `Youtube Data Api V3`. Add the client id and secret to
 the environment variables: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
 
+Then just run the project with `go run .` and access the app on `localhost:8080`.
+
 ## Limitations
 
 Youtube gives a daily quota of 10.000 with each API call having a different cost. Currently for
@@ -34,5 +36,5 @@ each playlist the operations costs are:
 | search               | find videoId by name. Necessary to insert track   | 100                   |
 | insert playlist item | Creates the track on the playlist                 | 50                    |
 
-Which is fairly limited to around 66 tracks daily. Even if the read data comes from another source, like
+Which is limited to around 66 tracks daily. Even if the read data comes from another source, like
 a scrapper, the number would improve to only 200 at best.
