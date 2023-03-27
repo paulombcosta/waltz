@@ -1,0 +1,35 @@
+{{template "base" .}}
+
+{{ define "header" }}
+    <div class="playlistHeader">
+        <p>Select Spotify playlists to migrate</p>
+        <button type="button" id="submit" class="submitButton disabled">Start Transfer</button>
+    </div>
+{{ end }} 
+
+{{ define "main" }}
+<div id="main">
+        {{ with .PlaylistsContent }}
+        <div class="selectAllContainer">
+            <input class="selectAllInput" type="checkbox" id="bulk" name="Select all"/>
+            <p>Select all</p>
+        </div>
+        <table id="table" class="playlistTable">
+            <tr>
+                <th>Selected</th>
+                <th>Name</th>
+                <th>Tracks</th>
+                <th>Creator</th>
+            </tr>
+            {{ range .Playlists }}
+                <tr>
+                    <td><input type="checkbox" id="{{ .ID }}" class="checkbox"></td>
+                    <td class="name">{{ .Name }}</td>
+                    <td class="totalTracks">{{ .Tracks }}</td>
+                    <td>{{ .Creator }}</td>
+                </tr>
+            {{ end }}
+        </table>
+        {{ end }}
+</div>
+{{ end }}
