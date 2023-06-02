@@ -117,7 +117,7 @@ func parseMessage(payload []byte) (*TransferPayload, error) {
 func (a application) getProvider(name string, r *http.Request, w http.ResponseWriter) (provider.Provider, error) {
 	tokenProvider := token.New(name, r, w, a.sessionManager)
 	if name == PROVIDER_GOOGLE {
-		return youtube.New(tokenProvider), nil
+		return youtube.NewApiProvider(tokenProvider), nil
 	} else if name == PROVIDER_SPOTIFY {
 		return spotify.New(tokenProvider), nil
 	} else {

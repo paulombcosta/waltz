@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "yt-search"
+version = "0.1.0"
+description = ""
+authors = ["Paulo Costa <paulombcosta@gmail.com>"]
+readme = "README.md"
+packages = [{include = "yt_search"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.95.2"
+ytmusicapi = "^1.0.2"
+uvicorn = "^0.22.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

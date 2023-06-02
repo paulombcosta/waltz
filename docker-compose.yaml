@@ -1,0 +1,7 @@
+version: '3'
+services:
+  search:
+    container_name: search
+    build: ./yt_search
+    ports:
+      - 8000:80

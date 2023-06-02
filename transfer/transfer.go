@@ -3,9 +3,11 @@ package transfer
 import (
 	"encoding/json"
 	"errors"
+	"log"
 
 	"github.com/gorilla/websocket"
 	"github.com/paulombcosta/waltz/provider"
+	"github.com/paulombcosta/waltz/provider/youtube"
 )
 
 const (
@@ -138,10 +140,19 @@ func (client TransferClient) addTracksToPlaylist(provider provider.Provider, pla
 
 		trackId, err := provider.FindTrack(t.FullName())
 		if err != nil {
+			if errors.Is(err, youtube.ErrorTrackNotFound) {
+				log.Printf("track %s not found, skipping it", t.FullName())
+				client.publish(PROGRESS_TRACK_DONE, "")
+				continue
+			}
+			log.Println(err)
 			return err
 		}
 
+		log.Println("found track with id ", trackId)
+
 		if trackId == "" {
+			client.publish(PROGRESS_TRACK_DONE, "")
 			continue
 		}
 
@@ -155,11 +166,13 @@ func (client TransferClient) addTracksToPlaylist(provider provider.Provider, pla
 		}
 
 		if isDuplicate {
+			client.publish(PROGRESS_TRACK_DONE, "")
 			continue
 		}
 
 		err = provider.AddToPlaylist(playlistId, string(trackId))
 		if err != nil {
+			client.publish(PROGRESS_TRACK_DONE, "")
 			return err
 		}
 
