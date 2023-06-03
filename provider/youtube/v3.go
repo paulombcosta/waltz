@@ -193,3 +193,7 @@ type TokenSource struct {
 func (s TokenSource) Token() (*oauth2.Token, error) {
 	return &s.Source, nil
 }
+
+func (y YoutubeV3Provider) Debug() {
+	panic("not used")
+}

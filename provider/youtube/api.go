@@ -20,7 +20,7 @@ type YoutubeApiProvider struct {
 }
 
 const (
-	API_ENDPOINT = "http://localhost:8000/"
+	API_ENDPOINT = "http://localhost:8000"
 )
 
 type SearchResponse struct {
@@ -310,6 +310,12 @@ func (y YoutubeApiProvider) FindTrack(name string) (provider.TrackID, error) {
 		return "", err
 	}
 	return res, nil
+}
+
+func (y YoutubeApiProvider) Debug() {
+	p, _ := y.createAuthPayload()
+	b, _ := json.Marshal(p)
+	log.Println(string(b))
 }
 
 func searchTrack(name string) (provider.TrackID, error) {

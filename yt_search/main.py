@@ -47,7 +47,9 @@ async def get_playlists(channelId : str):
     if channelId == "":
         raise HTTPException(status_code=400, detail="channelId cannot be empty")
 
+    print("channel id = ", channelId)
     u = yt.get_user(channelId=channelId)
+    print("result from get_user :", u)
 
     playlists = yt.get_user_playlists(channelId=channelId, params=u["playlists"]["params"])
     return playlists
@@ -60,7 +62,9 @@ async def get_playlist(playlist_id : str):
 
 @app.post("/playlist")
 async def insert_playlist(payload : CreatePlaylistPayload):
+    print("create playlist payload: ", payload)
     id = get_auth_client(payload.auth).create_playlist(title=payload.title, description="created by waltz", privacy_status="PUBLIC")
+    print("create playlist result: ", id)
     return {'id': id }
 
 @app.post("/track")
