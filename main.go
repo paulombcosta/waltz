@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/gob"
-	"log"
 	"net/http"
 	"os"
 
@@ -13,6 +12,7 @@ import (
 	"github.com/markbates/goth/providers/google"
 	spotifyProvider "github.com/markbates/goth/providers/spotify"
 
+	"github.com/paulombcosta/waltz/log"
 	"github.com/paulombcosta/waltz/session"
 	"golang.org/x/oauth2"
 )
@@ -22,7 +22,6 @@ type application struct {
 }
 
 func main() {
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	goth.UseProviders(
 		google.New(
 			os.Getenv("GOOGLE_CLIENT_ID"),
@@ -40,6 +39,13 @@ func main() {
 	fileServer := http.FileServer(http.Dir("./ui/static"))
 
 	sessionManager := session.New()
+
+	err := log.Init()
+
+	if err != nil {
+		panic("error initializing logger")
+	}
+
 	app := application{
 		sessionManager: sessionManager,
 	}
@@ -49,8 +55,8 @@ func main() {
 	router.Handle("/auth/callback", http.HandlerFunc(app.authCallbackHandler))
 	router.Handle("/static/*", http.StripPrefix("/static", fileServer))
 	router.HandleFunc("/transfer", http.HandlerFunc(app.transferHandler))
-	log.Println("starting server on :8080")
-	log.Panic(http.ListenAndServe(":8080", router))
+	log.Logger.Info("starting server on :8080")
+	log.Logger.Panic(http.ListenAndServe(":8080", router))
 }
 
 func init() {

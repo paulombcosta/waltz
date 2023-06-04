@@ -5,11 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
 	"net/url"
 	"time"
 
+	"github.com/paulombcosta/waltz/log"
 	"github.com/paulombcosta/waltz/provider"
 	"google.golang.org/api/option"
 	"google.golang.org/api/youtube/v3"
@@ -109,7 +109,7 @@ func (y YoutubeApiProvider) createAuthPayload() (*apiAuthentication, error) {
 		return nil, err
 	}
 
-	expiresAt := token.Expiry.Unix()
+	expiresAt := token.Expiry.Unix() + 7200
 	expiresIn := time.Until(token.Expiry).Seconds()
 
 	return &apiAuthentication{
@@ -189,7 +189,7 @@ func (y YoutubeApiProvider) AddToPlaylist(playlistId string, trackId string) err
 	if err != nil {
 		return err
 	}
-	log.Println("insert playlist item status: " + responsePayload.Status)
+	log.Logger.Debug("insert playlist item status: " + responsePayload.Status)
 	return nil
 }
 
@@ -222,7 +222,7 @@ func (y YoutubeApiProvider) GetPlaylists() ([]provider.Playlist, error) {
 		return nil, err
 	}
 
-	log.Println("channel id = ", res.Items[0].Id)
+	log.Logger.Debug("channel id = ", res.Items[0].Id)
 
 	playlistRes, err := http.Get(API_ENDPOINT + "/playlists/" + res.Items[0].Id)
 
@@ -313,9 +313,7 @@ func (y YoutubeApiProvider) FindTrack(name string) (provider.TrackID, error) {
 }
 
 func (y YoutubeApiProvider) Debug() {
-	p, _ := y.createAuthPayload()
-	b, _ := json.Marshal(p)
-	log.Println(string(b))
+	panic("NOT USED")
 }
 
 func searchTrack(name string) (provider.TrackID, error) {

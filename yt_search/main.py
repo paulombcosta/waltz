@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import Optional
+from fastapi.encoders import jsonable_encoder
 import ytmusicapi
 import json
 
@@ -8,7 +8,7 @@ yt = ytmusicapi.YTMusic()
 
 app = FastAPI()
 
-auth_client : Optional[ytmusicapi.YTMusic] = None
+app.auth_client = None
 
 class AuthPayload(BaseModel):
     access_token : str
@@ -27,9 +27,10 @@ class CreatePlaylistItemPayload(BaseModel):
     auth : AuthPayload
 
 def get_auth_client(auth: AuthPayload) -> ytmusicapi.YTMusic:
-    if (auth_client is None):
-        auth_client = ytmusicapi.YTMusic(json.dumps(auth))
-    return auth_client
+    if app.auth_client is None:
+        encodable_auth = jsonable_encoder(auth)
+        app.auth_client = ytmusicapi.YTMusic(json.dumps(encodable_auth))
+    return app.auth_client
 
 
 @app.get("/track/search")
@@ -47,12 +48,12 @@ async def get_playlists(channelId : str):
     if channelId == "":
         raise HTTPException(status_code=400, detail="channelId cannot be empty")
 
-    print("channel id = ", channelId)
     u = yt.get_user(channelId=channelId)
-    print("result from get_user :", u)
 
-    playlists = yt.get_user_playlists(channelId=channelId, params=u["playlists"]["params"])
-    return playlists
+    if "params" in u["playlists"]:
+        return yt.get_user_playlists(channelId=channelId, params=u["playlists"]["params"])
+    else:
+        return u["playlists"]["results"]
 
 @app.get("/playlist/{playlist_id}")
 async def get_playlist(playlist_id : str):
@@ -70,4 +71,5 @@ async def insert_playlist(payload : CreatePlaylistPayload):
 @app.post("/track")
 async def insert_playlist_item(payload : CreatePlaylistItemPayload):
     status = get_auth_client(payload.auth).add_playlist_items(playlistId=payload.playlist_id, videoIds=[payload.track_id], source_playlist=None, duplicates=False)
-    return {'status': status}
+    print("status = ", status)
+    return status

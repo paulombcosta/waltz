@@ -3,7 +3,8 @@ package transfer
 import (
 	"encoding/json"
 	"errors"
-	"log"
+
+	"github.com/paulombcosta/waltz/log"
 
 	"github.com/gorilla/websocket"
 	"github.com/paulombcosta/waltz/provider"
@@ -24,6 +25,13 @@ type ProgressMessage struct {
 }
 
 type TransferClientBuilder struct {
+	origin      provider.Provider
+	playlists   []provider.Playlist
+	publisher   ProgressPublisher
+	destination provider.Provider
+}
+
+type TransferClient struct {
 	origin      provider.Provider
 	playlists   []provider.Playlist
 	publisher   ProgressPublisher
@@ -87,13 +95,6 @@ type ProgressPublisher interface {
 	Publish(progressType string, body string) error
 }
 
-type TransferClient struct {
-	origin      provider.Provider
-	playlists   []provider.Playlist
-	publisher   ProgressPublisher
-	destination provider.Provider
-}
-
 func (t TransferClient) publish(typeOf string, content string) {
 	_ = t.publisher.Publish(typeOf, content)
 }
@@ -135,21 +136,21 @@ func (client TransferClient) addTracksToPlaylist(provider provider.Provider, pla
 		return err
 	}
 	existingTracks := currentPlaylist.Tracks
+	log.Logger.Debug("tracks: ", existingTracks)
 
 	for _, t := range tracks {
 
 		trackId, err := provider.FindTrack(t.FullName())
 		if err != nil {
 			if errors.Is(err, youtube.ErrorTrackNotFound) {
-				log.Printf("track %s not found, skipping it", t.FullName())
+				log.Logger.Debug("track %s not found, skipping it", t.FullName())
 				client.publish(PROGRESS_TRACK_DONE, "")
 				continue
 			}
-			log.Println(err)
 			return err
 		}
 
-		log.Println("found track with id ", trackId)
+		log.Logger.Debug("found track with id ", trackId)
 
 		if trackId == "" {
 			client.publish(PROGRESS_TRACK_DONE, "")
@@ -164,6 +165,7 @@ func (client TransferClient) addTracksToPlaylist(provider provider.Provider, pla
 				break
 			}
 		}
+		log.Logger.Debug("is duplicate ", isDuplicate)
 
 		if isDuplicate {
 			client.publish(PROGRESS_TRACK_DONE, "")
@@ -183,17 +185,20 @@ func (client TransferClient) addTracksToPlaylist(provider provider.Provider, pla
 
 func getOrCreatePlaylist(destination provider.Provider, playlist provider.Playlist) (string, error) {
 	destinationPlaylist := ""
-	id, err := destination.FindPlaylistByName(string(playlist.Name))
+	log.Logger.Debug("searching for playlist: ", playlist.Name)
+	id, err := destination.FindPlaylistByName(playlist.Name)
 	if err != nil {
 		return "", err
 	}
 	if id == "" {
+		log.Logger.Debug("playlist not found, creating it")
 		id, err = destination.CreatePlaylist(playlist.Name)
 		if err != nil {
 			return "", err
 		}
 		destinationPlaylist = string(id)
 	} else {
+		log.Logger.Debug("playlist already exists: ", id)
 		destinationPlaylist = string(id)
 	}
 	return destinationPlaylist, nil

@@ -2,12 +2,19 @@ package transfer
 
 import (
 	"errors"
+	"os"
 	"testing"
 
+	"github.com/paulombcosta/waltz/log"
 	"github.com/paulombcosta/waltz/provider"
 )
 
 type NoOpPublisher struct{}
+
+func TestMain(m *testing.M) {
+	log.Init()
+	os.Exit(m.Run())
+}
 
 func (p NoOpPublisher) Publish(progressType string, body string) error {
 	return nil
