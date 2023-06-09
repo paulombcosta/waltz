@@ -104,6 +104,7 @@ func NewApiProvider(tokenProvider provider.TokenProvider) *YoutubeApiProvider {
 }
 
 func (y YoutubeApiProvider) createAuthPayload() (*apiAuthentication, error) {
+
 	token, err := y.tokenProvider.GetToken()
 	if err != nil {
 		return nil, err

@@ -9,6 +9,7 @@ yt = ytmusicapi.YTMusic()
 app = FastAPI()
 
 app.auth_client = None
+app.previousToken = None
 
 class AuthPayload(BaseModel):
     access_token : str
@@ -27,9 +28,10 @@ class CreatePlaylistItemPayload(BaseModel):
     auth : AuthPayload
 
 def get_auth_client(auth: AuthPayload) -> ytmusicapi.YTMusic:
-    if app.auth_client is None:
+    if app.auth_client is None or app.previous_token != auth.access_token:
         encodable_auth = jsonable_encoder(auth)
         app.auth_client = ytmusicapi.YTMusic(json.dumps(encodable_auth))
+        app.previous_token = auth.access_token
     return app.auth_client
 
 

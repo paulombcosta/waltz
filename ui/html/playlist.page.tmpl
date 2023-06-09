@@ -3,17 +3,26 @@
 {{ define "header" }}
     <div class="playlistHeader">
         <p>Select Spotify playlists to migrate</p>
-        <button type="button" id="submit" class="submitButton disabled">Start Transfer</button>
+        <input 
+            type="submit"
+            value="Next"
+            id="submit"
+            form="playlistsForm"
+            class="submitButton disabled"
+            _="on change from .checkbox if .checkbox.checked contains true then remove .disabled otherwise add .disabled end
+               then on change from #bulk if .checkbox.checked contains true then remove .disabled otherwise add .disabled"
+            />
     </div>
 {{ end }} 
 
 {{ define "main" }}
 <div id="main">
         {{ with .PlaylistsContent }}
-        <div class="selectAllContainer">
-            <input class="selectAllInput" type="checkbox" id="bulk" name="Select all"/>
+        <div class="selectAllContainer" >
+            <input class="selectAllInput" type="checkbox" id="bulk" name="Select all" _="on click set .checkbox.checked to me.checked"/>
             <p>Select all</p>
         </div>
+        <form id="playlistsForm" method="POST" action="/transfer" >
         <table id="table" class="playlistTable">
             <tr>
                 <th>Selected</th>
@@ -23,13 +32,14 @@
             </tr>
             {{ range .Playlists }}
                 <tr>
-                    <td><input type="checkbox" id="{{ .ID }}" class="checkbox"></td>
+                    <td><input type="checkbox" value="{{ .ID }}" class="checkbox" name="id"></td>
                     <td class="name">{{ .Name }}</td>
                     <td class="totalTracks">{{ .Tracks }}</td>
                     <td>{{ .Creator }}</td>
                 </tr>
             {{ end }}
         </table>
+        </form>
         {{ end }}
 </div>
 {{ end }}

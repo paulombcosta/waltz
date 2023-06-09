@@ -19,6 +19,7 @@ import (
 
 type application struct {
 	sessionManager session.SessionManager
+	TransferData   *transferData
 }
 
 func main() {
@@ -48,13 +49,15 @@ func main() {
 
 	app := application{
 		sessionManager: sessionManager,
+		TransferData:   &transferData{},
 	}
 
 	router.Get("/", http.HandlerFunc(app.homepageHandler))
 	router.Get("/auth", gothic.BeginAuthHandler)
 	router.Handle("/auth/callback", http.HandlerFunc(app.authCallbackHandler))
 	router.Handle("/static/*", http.StripPrefix("/static", fileServer))
-	router.HandleFunc("/transfer", http.HandlerFunc(app.transferHandler))
+	router.HandleFunc("/transferSocket", http.HandlerFunc(app.transferSocket))
+	router.Post("/transfer", http.HandlerFunc(app.transferHandler))
 	log.Logger.Info("starting server on :8080")
 	log.Logger.Panic(http.ListenAndServe(":8080", router))
 }

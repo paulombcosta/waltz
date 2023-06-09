@@ -124,6 +124,10 @@ body {
     text-align: left;
 }
 
+#transfer {
+    margin-top: 10px;
+}
+
 .playlistTable td,
 .playlistTable th {
     border: 1px solid #ddd;
@@ -133,6 +137,7 @@ body {
 .progressContainer {
     display: flex;
     flex-direction: column;
+    align-items: center;
 }
 
 .progressContainer {

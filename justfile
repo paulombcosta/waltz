@@ -1,7 +1,7 @@
 alias start := run
 
 run:
-  PROFILE=dev go run .
+  PROFILE=dev air
 build:
  go build
 test:
@@ -13,3 +13,7 @@ run-search:
   docker-compose build
   docker-compose up -d
   docker logs -f search
+docker-build:
+  docker build -t paulombcosta/waltz:latest .
+docker-run:
+  docker run -it -p "8080:8080" paulombcosta/waltz:latest

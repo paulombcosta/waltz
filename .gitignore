@@ -3,3 +3,4 @@ waltz
 mock_**.go
 .DS_Store
 __pycache__
+tmp
