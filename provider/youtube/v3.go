@@ -10,12 +10,12 @@ import (
 	"google.golang.org/api/youtube/v3"
 )
 
-type YoutubeProvider struct {
+type YoutubeV3Provider struct {
 	tokenProvider provider.TokenProvider
 	playlists     []*youtube.Playlist
 }
 
-func (y YoutubeProvider) getPlaylists() ([]*youtube.Playlist, error) {
+func (y YoutubeV3Provider) getPlaylists() ([]*youtube.Playlist, error) {
 	if y.playlists != nil {
 		return y.playlists, nil
 	}
@@ -31,17 +31,17 @@ func (y YoutubeProvider) getPlaylists() ([]*youtube.Playlist, error) {
 	return y.playlists, nil
 }
 
-func New(tokenProvider provider.TokenProvider) *YoutubeProvider {
-	return &YoutubeProvider{tokenProvider: tokenProvider}
+func NewV3Provider(tokenProvider provider.TokenProvider) *YoutubeV3Provider {
+	return &YoutubeV3Provider{tokenProvider: tokenProvider}
 }
 
 // maybe move to sessions, looks more like it
-func (y YoutubeProvider) IsLoggedIn() bool {
+func (y YoutubeV3Provider) IsLoggedIn() bool {
 	_, err := y.tokenProvider.RefreshToken()
 	return err == nil
 }
 
-func (y YoutubeProvider) FindTrack(name string) (provider.TrackID, error) {
+func (y YoutubeV3Provider) FindTrack(name string) (provider.TrackID, error) {
 	client, err := y.getYoutubeClient()
 	if err != nil {
 		return "", err
@@ -56,7 +56,7 @@ func (y YoutubeProvider) FindTrack(name string) (provider.TrackID, error) {
 	return provider.TrackID(searchResponse.Items[0].Id.VideoId), nil
 }
 
-func (y YoutubeProvider) FindPlaylistByName(name string) (provider.PlaylistID, error) {
+func (y YoutubeV3Provider) FindPlaylistByName(name string) (provider.PlaylistID, error) {
 	playlists, err := y.getPlaylists()
 	if err != nil {
 		return "", err
@@ -69,7 +69,7 @@ func (y YoutubeProvider) FindPlaylistByName(name string) (provider.PlaylistID, e
 	return "", nil
 }
 
-func (y YoutubeProvider) CreatePlaylist(name string) (provider.PlaylistID, error) {
+func (y YoutubeV3Provider) CreatePlaylist(name string) (provider.PlaylistID, error) {
 	client, err := y.getYoutubeClient()
 	if err != nil {
 		return "", err
@@ -91,7 +91,7 @@ func (y YoutubeProvider) CreatePlaylist(name string) (provider.PlaylistID, error
 	return provider.PlaylistID(playlist.Id), nil
 }
 
-func (y YoutubeProvider) GetPlaylists() ([]provider.Playlist, error) {
+func (y YoutubeV3Provider) GetPlaylists() ([]provider.Playlist, error) {
 	client, err := y.getYoutubeClient()
 	if err != nil {
 		return nil, err
@@ -110,11 +110,11 @@ func (y YoutubeProvider) GetPlaylists() ([]provider.Playlist, error) {
 	return playlists, nil
 }
 
-func (y YoutubeProvider) Name() string {
-	return "YouTube"
+func (y YoutubeV3Provider) Name() string {
+	return "YouTubeV3"
 }
 
-func (y YoutubeProvider) GetFullPlaylist(id string) (*provider.FullPlaylist, error) {
+func (y YoutubeV3Provider) GetFullPlaylist(id string) (*provider.FullPlaylist, error) {
 	client, err := y.getYoutubeClient()
 	if err != nil {
 		return nil, err
@@ -150,7 +150,7 @@ func (y YoutubeProvider) GetFullPlaylist(id string) (*provider.FullPlaylist, err
 	return playlist, nil
 }
 
-func (y YoutubeProvider) AddToPlaylist(playlistId string, trackId string) error {
+func (y YoutubeV3Provider) AddToPlaylist(playlistId string, trackId string) error {
 	client, err := y.getYoutubeClient()
 	if err != nil {
 		return nil
@@ -172,7 +172,7 @@ func (y YoutubeProvider) AddToPlaylist(playlistId string, trackId string) error 
 	return nil
 }
 
-func (y YoutubeProvider) getYoutubeClient() (*youtube.Service, error) {
+func (y YoutubeV3Provider) getYoutubeClient() (*youtube.Service, error) {
 	tokens, err := y.tokenProvider.GetToken()
 	if err != nil {
 		return nil, err
@@ -192,4 +192,8 @@ type TokenSource struct {
 
 func (s TokenSource) Token() (*oauth2.Token, error) {
 	return &s.Source, nil
+}
+
+func (y YoutubeV3Provider) Debug() {
+	panic("not used")
 }

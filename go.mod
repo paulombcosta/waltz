@@ -5,8 +5,10 @@ go 1.20
 require (
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/gorilla/sessions v1.2.1
+	github.com/gorilla/websocket v1.5.0
 	github.com/markbates/goth v1.76.0
 	github.com/zmb3/spotify/v2 v2.3.1
+	go.uber.org/zap v1.24.0
 	golang.org/x/oauth2 v0.5.0
 )
 
@@ -16,10 +18,11 @@ require (
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.3 // indirect
 	github.com/googleapis/gax-go/v2 v2.7.0 // indirect
-	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
+	go.uber.org/atomic v1.11.0 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
 	google.golang.org/genproto v0.0.0-20230209215440-0dfe4f8abfcc // indirect

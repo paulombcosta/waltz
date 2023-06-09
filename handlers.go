@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"path/filepath"
 
 	"github.com/gorilla/websocket"
 	"github.com/markbates/goth/gothic"
+	"github.com/paulombcosta/waltz/log"
 	"github.com/paulombcosta/waltz/provider"
 	"github.com/paulombcosta/waltz/provider/spotify"
 	"github.com/paulombcosta/waltz/provider/youtube"
@@ -23,6 +23,11 @@ const (
 	PROVIDER_SPOTIFY = "spotify"
 )
 
+type transferData struct {
+	AllPlaylists []provider.Playlist
+	SelectedIds  []string
+}
+
 type PlaylistsContent struct {
 	Playlists []provider.Playlist
 	Err       string
@@ -34,21 +39,14 @@ type PageState struct {
 	PlaylistsContent PlaylistsContent
 }
 
-type TransferPayload struct {
-	Playlists []TransferPlaylist `json:"playlists"`
+type TransferProgress struct {
+	TotalPlaylists uint
+	TotalTracks    uint
 }
 
-func (t TransferPayload) ToProviderPlaylist() []provider.Playlist {
-	providerPlaylist := []provider.Playlist{}
-	for _, p := range t.Playlists {
-		providerPlaylist = append(providerPlaylist, provider.Playlist{
-			ID:   provider.PlaylistID(p.ID),
-			Name: p.Name,
-		})
-	}
-	return providerPlaylist
+type TransferCommand struct {
+	Command string `json:"command"`
 }
-
 type TransferPlaylist struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
@@ -57,9 +55,40 @@ type TransferPlaylist struct {
 var upgrader = websocket.Upgrader{}
 
 func (a application) transferHandler(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, "failed to parse form", http.StatusInternalServerError)
+		return
+	}
+	ids := r.Form["id"]
+	a.TransferData.SelectedIds = ids
+	tmpl := template.Must(loadPage("transfer"))
+	err = tmpl.Execute(w, a.getTransferProgress())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (a application) getTransferProgress() TransferProgress {
+	var totalPlaylists uint = uint(len(a.TransferData.SelectedIds))
+	var totalTracks uint = 0
+	for _, p := range a.TransferData.AllPlaylists {
+		for _, id := range a.TransferData.SelectedIds {
+			if p.ID == provider.PlaylistID(id) {
+				totalTracks = totalTracks + p.Tracks
+			}
+		}
+	}
+	return TransferProgress{
+		TotalPlaylists: totalPlaylists,
+		TotalTracks:    totalTracks,
+	}
+}
+
+func (a application) transferSocket(w http.ResponseWriter, r *http.Request) {
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Print("upgrade:", err)
 		return
 	}
 	defer c.Close()
@@ -67,15 +96,23 @@ func (a application) transferHandler(w http.ResponseWriter, r *http.Request) {
 	for {
 		_, message, err := c.ReadMessage()
 		if err != nil {
+			log.Logger.Debug(err)
 			publisher.Error(err.Error())
 			break
 		}
 		payload, err := parseMessage(message)
+
+		if payload.Command != "START" {
+			log.Logger.Debugf("invalid command %s sent to server", payload.Command)
+			publisher.Error("invalid command")
+			break
+		}
+
 		if err != nil {
 			publisher.Error(err.Error())
 			break
 		}
-		if len(payload.Playlists) == 0 {
+		if len(a.TransferData.SelectedIds) == 0 {
 			publisher.Error("failure: no playlists selected")
 			break
 		}
@@ -91,8 +128,18 @@ func (a application) transferHandler(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
+		playlists := []provider.Playlist{}
+
+		for _, p := range a.TransferData.AllPlaylists {
+			for _, id := range a.TransferData.SelectedIds {
+				if p.ID == provider.PlaylistID(id) {
+					playlists = append(playlists, p)
+				}
+			}
+		}
+
 		err = transfer.Transfer().
-			Playlists(payload.ToProviderPlaylist()).
+			Playlists(playlists).
 			From(origin).
 			To(destination).
 			WithProgressPublisher(publisher).
@@ -105,8 +152,8 @@ func (a application) transferHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func parseMessage(payload []byte) (*TransferPayload, error) {
-	var data TransferPayload
+func parseMessage(payload []byte) (*TransferCommand, error) {
+	var data TransferCommand
 	err := json.Unmarshal(payload, &data)
 	if err != nil {
 		return nil, err
@@ -117,7 +164,7 @@ func parseMessage(payload []byte) (*TransferPayload, error) {
 func (a application) getProvider(name string, r *http.Request, w http.ResponseWriter) (provider.Provider, error) {
 	tokenProvider := token.New(name, r, w, a.sessionManager)
 	if name == PROVIDER_GOOGLE {
-		return youtube.New(tokenProvider), nil
+		return youtube.NewApiProvider(tokenProvider), nil
 	} else if name == PROVIDER_SPOTIFY {
 		return spotify.New(tokenProvider), nil
 	} else {
@@ -164,6 +211,7 @@ func (a application) homepageHandler(w http.ResponseWriter, r *http.Request) {
 				Err:       "",
 			}
 		}
+		a.TransferData.AllPlaylists = playlists
 		pageState.PlaylistsContent = content
 		tmpl := template.Must(loadPage("playlist"))
 		err = tmpl.Execute(w, pageState)

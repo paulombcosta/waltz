@@ -1,0 +1,21 @@
+{{template "base" .}}
+
+{{ define "header" }}
+    <div class="playlistHeader">
+    <p class="progressTitle">Transfer Overview</p>
+    </div>
+{{ end }} 
+
+{{ define "main" }}
+    <div class="progressContainer">
+        <p class="currentPlaylist" id="currentPlaylist">Transfering Playlist: <span id="playlistNameValue">-</span></p>
+        <p class="playlistProgressCount" id="playlistProgressCount">
+            Playlists transferred <span id="playlistProgressValue">0</span> of {{ .TotalPlaylists }}
+        </p>
+        <p class="trackProgressCount" id="trackProgressCount">
+            Tracks transferred <span id="trackProgressValue">0</span> of {{ .TotalTracks }}
+        </p>
+        <p id="progressEndText" class="progressEndText disabled"></p>
+        <button id="transfer" class="submitButton">Start Transfer</button>
+    </div>
+{{ end }}

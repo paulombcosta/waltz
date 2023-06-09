@@ -25,6 +25,7 @@ type Provider interface {
 	FindPlaylistByName(name string) (PlaylistID, error)
 	GetFullPlaylist(id string) (*FullPlaylist, error)
 	AddToPlaylist(playlistId string, trackId string) error
+	Debug()
 }
 
 type FullPlaylist struct {

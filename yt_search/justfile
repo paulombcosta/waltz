@@ -1,0 +1,6 @@
+alias start := run
+
+run:
+  poetry run uvicorn main:app --reload
+export:
+  poetry export -f requirements.txt --output requirements.txt
